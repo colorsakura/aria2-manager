@@ -29,7 +29,13 @@ describe('PopupApp', () => {
       type: 'popupState',
       settings: {
         ...createDefaultSettings(),
-        lastResult: { status: 'success', url: 'https://example.com/file.zip', filename: 'file.zip', gid: '1', timestamp: 1 }
+        lastResult: {
+          status: 'success',
+          url: 'https://example.com/file.zip',
+          filename: 'file.zip',
+          gid: '1',
+          timestamp: 1
+        }
       },
       rpcStatus: { ok: true, version: '1.37.0' },
       tasks: [{ gid: '1', name: 'file.zip', status: 'active', progress: 50, downloadSpeed: 1024 }]
@@ -48,7 +54,12 @@ describe('PopupApp', () => {
   it('toggles interception', async () => {
     const user = userEvent.setup();
     mockedSend
-      .mockResolvedValueOnce({ type: 'popupState', settings: createDefaultSettings(), rpcStatus: { ok: false, message: 'offline' }, tasks: [] })
+      .mockResolvedValueOnce({
+        type: 'popupState',
+        settings: createDefaultSettings(),
+        rpcStatus: { ok: false, message: 'offline' },
+        tasks: []
+      })
       .mockResolvedValueOnce({ type: 'ok' });
 
     render(<PopupApp />);

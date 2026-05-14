@@ -55,15 +55,22 @@ export function PopupApp() {
           aria-label="Enable interception"
           type="checkbox"
           checked={state.settings.enabled}
-          onChange={event => void toggleEnabled(event.currentTarget.checked)}
+          onChange={(event) => void toggleEnabled(event.currentTarget.checked)}
         />
         <span>Enable interception</span>
       </label>
 
       <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
         <div className="flex items-center justify-between gap-2">
-          <p>{state.rpcStatus.ok ? `Connected: aria2 ${state.rpcStatus.version}` : `Disconnected: ${state.rpcStatus.message}`}</p>
-          <button className="rounded bg-slate-900 px-3 py-1 text-white dark:bg-slate-100 dark:text-slate-900" onClick={() => void refresh()}>
+          <p>
+            {state.rpcStatus.ok
+              ? `Connected: aria2 ${state.rpcStatus.version}`
+              : `Disconnected: ${state.rpcStatus.message}`}
+          </p>
+          <button
+            className="rounded bg-slate-900 px-3 py-1 text-white dark:bg-slate-100 dark:text-slate-900"
+            onClick={() => void refresh()}
+          >
             Test
           </button>
         </div>
@@ -80,7 +87,7 @@ export function PopupApp() {
           <p className="text-slate-500">No active tasks</p>
         ) : (
           <ul className="space-y-2">
-            {state.tasks.map(task => (
+            {state.tasks.map((task) => (
               <li key={task.gid} className="rounded border border-slate-200 p-2 dark:border-slate-700">
                 <div className="flex justify-between gap-2">
                   <span className="truncate font-medium">{task.name}</span>

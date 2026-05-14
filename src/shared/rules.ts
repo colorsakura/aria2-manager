@@ -41,7 +41,7 @@ function getHostname(url: string): string | null {
 }
 
 function domainMatches(hostname: string, domains: string[]): boolean {
-  return domains.some(domain => {
+  return domains.some((domain) => {
     const normalized = domain.trim().toLowerCase();
     return normalized.length > 0 && (hostname === normalized || hostname.endsWith(`.${normalized}`));
   });

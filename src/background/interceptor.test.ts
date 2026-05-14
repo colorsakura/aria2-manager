@@ -57,7 +57,10 @@ describe('handleDownloadCreated', () => {
     await handleDownloadCreated(download, dependencyBag);
 
     expect(dependencyBag.cancelDownload).toHaveBeenCalledWith(42);
-    expect(dependencyBag.collectRequestContext).toHaveBeenCalledWith('https://example.com/file.zip', createDefaultSettings().requestContext);
+    expect(dependencyBag.collectRequestContext).toHaveBeenCalledWith(
+      'https://example.com/file.zip',
+      createDefaultSettings().requestContext
+    );
     expect(dependencyBag.addUri).toHaveBeenCalledWith(createDefaultSettings(), 'https://example.com/file.zip', {
       referer: 'https://example.com/page'
     });

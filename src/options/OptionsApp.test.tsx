@@ -18,7 +18,9 @@ describe('OptionsApp', () => {
 
   it('loads and saves settings', async () => {
     const user = userEvent.setup();
-    mockedSend.mockResolvedValueOnce({ type: 'settings', settings: createDefaultSettings() }).mockResolvedValueOnce({ type: 'ok' });
+    mockedSend
+      .mockResolvedValueOnce({ type: 'settings', settings: createDefaultSettings() })
+      .mockResolvedValueOnce({ type: 'ok' });
 
     render(<OptionsApp />);
 

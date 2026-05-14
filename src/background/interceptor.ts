@@ -1,7 +1,13 @@
 import { addUri as defaultAddUri } from '../shared/aria2Client';
 import { shouldInterceptDownload } from '../shared/rules';
 import { loadSettings, updateLastResult } from '../shared/settingsStorage';
-import type { DownloadCandidate, ExtensionSettings, LastResult, RequestContextHeaders, RequestContextSettings } from '../shared/types';
+import type {
+  DownloadCandidate,
+  ExtensionSettings,
+  LastResult,
+  RequestContextHeaders,
+  RequestContextSettings
+} from '../shared/types';
 
 interface InterceptorDependencies {
   loadSettings: () => Promise<ExtensionSettings>;
@@ -13,7 +19,10 @@ interface InterceptorDependencies {
   now: () => number;
 }
 
-export async function handleDownloadCreated(download: DownloadCandidate, dependencies: InterceptorDependencies): Promise<void> {
+export async function handleDownloadCreated(
+  download: DownloadCandidate,
+  dependencies: InterceptorDependencies
+): Promise<void> {
   const settings = await dependencies.loadSettings();
   const decision = shouldInterceptDownload(download, settings.rules, settings.enabled);
 
@@ -59,7 +68,7 @@ export function createDefaultInterceptorDependencies(
     cancelDownload,
     collectRequestContext,
     addUri: defaultAddUri,
-    saveLastResult: async result => {
+    saveLastResult: async (result) => {
       await updateLastResult(result);
     },
     notify,

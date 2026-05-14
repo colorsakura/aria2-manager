@@ -5,20 +5,20 @@ import type { DownloadCandidate, RuntimeRequest, RuntimeResponse } from '../shar
 import { createDefaultInterceptorDependencies, handleDownloadCreated } from './interceptor';
 import { RequestContextTracker } from './requestContext';
 
-const requestContextTracker = new RequestContextTracker(url => browser.cookies.getAll({ url }));
+const requestContextTracker = new RequestContextTracker((url) => browser.cookies.getAll({ url }));
 
 browser.webRequest.onBeforeSendHeaders.addListener(
-  details => {
+  (details) => {
     requestContextTracker.recordHeaders({
       url: details.url,
-      requestHeaders: details.requestHeaders?.map(header => ({ name: header.name, value: header.value }))
+      requestHeaders: details.requestHeaders?.map((header) => ({ name: header.name, value: header.value }))
     });
   },
   { urls: ['<all_urls>'] },
   ['requestHeaders']
 );
 
-browser.downloads.onCreated.addListener(downloadItem => {
+browser.downloads.onCreated.addListener((downloadItem) => {
   const download: DownloadCandidate = {
     id: downloadItem.id,
     url: downloadItem.url,
@@ -29,7 +29,7 @@ browser.downloads.onCreated.addListener(downloadItem => {
   void handleDownloadCreated(
     download,
     createDefaultInterceptorDependencies(
-      id => browser.downloads.cancel(id),
+      (id) => browser.downloads.cancel(id),
       (url, settings) => requestContextTracker.collect(url, settings),
       notify
     )

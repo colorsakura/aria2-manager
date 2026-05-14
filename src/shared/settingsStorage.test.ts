@@ -54,7 +54,12 @@ describe('settingsStorage', () => {
   });
 
   it('updates last result', async () => {
-    const result = { status: 'failure' as const, url: 'https://example.com/file.zip', message: 'RPC failed', timestamp: 1 };
+    const result = {
+      status: 'failure' as const,
+      url: 'https://example.com/file.zip',
+      message: 'RPC failed',
+      timestamp: 1
+    };
 
     await updateLastResult(result);
 

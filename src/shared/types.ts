@@ -62,9 +62,7 @@ export interface Aria2ActiveTask {
   downloadSpeed: number;
 }
 
-export type RpcStatus =
-  | { ok: true; version: string }
-  | { ok: false; message: string };
+export type RpcStatus = { ok: true; version: string } | { ok: false; message: string };
 
 export type RuntimeRequest =
   | { type: 'settings:get' }

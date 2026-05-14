@@ -60,7 +60,7 @@ export class RequestContextTracker {
     if (settings.sendCookies) {
       const cookies = await this.getCookies(url);
       if (cookies.length > 0) {
-        headers.cookie = cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
+        headers.cookie = cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ');
       }
     }
 
@@ -78,5 +78,5 @@ export class RequestContextTracker {
 }
 
 function findHeader(headers: HeaderInput['requestHeaders'], name: string): string | undefined {
-  return headers?.find(header => header.name.toLowerCase() === name.toLowerCase())?.value;
+  return headers?.find((header) => header.name.toLowerCase() === name.toLowerCase())?.value;
 }
