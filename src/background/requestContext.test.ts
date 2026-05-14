@@ -24,7 +24,9 @@ describe('RequestContextTracker', () => {
       ]
     });
 
-    await expect(tracker.collect('https://example.com/file.zip', settings)).resolves.toEqual({
+    await expect(
+      tracker.collect('https://example.com/file.zip', settings)
+    ).resolves.toEqual({
       referer: 'https://example.com/page',
       userAgent: 'Firefox Test'
     });
@@ -36,13 +38,17 @@ describe('RequestContextTracker', () => {
       { name: 'theme', value: 'dark' }
     ]);
 
-    await expect(tracker.collect('https://example.com/file.zip', settings)).resolves.toEqual({
+    await expect(
+      tracker.collect('https://example.com/file.zip', settings)
+    ).resolves.toEqual({
       cookie: 'sid=1; theme=dark'
     });
   });
 
   it('honors disabled context settings', async () => {
-    const tracker = new RequestContextTracker(async () => [{ name: 'sid', value: '1' }]);
+    const tracker = new RequestContextTracker(async () => [
+      { name: 'sid', value: '1' }
+    ]);
 
     tracker.recordHeaders({
       url: 'https://example.com/file.zip',
@@ -70,6 +76,8 @@ describe('RequestContextTracker', () => {
     });
     vi.advanceTimersByTime(1001);
 
-    await expect(tracker.collect('https://example.com/file.zip', settings)).resolves.toEqual({});
+    await expect(
+      tracker.collect('https://example.com/file.zip', settings)
+    ).resolves.toEqual({});
   });
 });

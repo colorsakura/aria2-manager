@@ -19,7 +19,10 @@ describe('OptionsApp', () => {
   it('loads and saves settings', async () => {
     const user = userEvent.setup();
     mockedSend
-      .mockResolvedValueOnce({ type: 'settings', settings: createDefaultSettings() })
+      .mockResolvedValueOnce({
+        type: 'settings',
+        settings: createDefaultSettings()
+      })
       .mockResolvedValueOnce({ type: 'ok' });
 
     render(<OptionsApp />);
@@ -33,7 +36,9 @@ describe('OptionsApp', () => {
       expect(mockedSend).toHaveBeenLastCalledWith(
         expect.objectContaining({
           type: 'settings:save',
-          settings: expect.objectContaining({ rpcUrl: 'http://localhost:6801/jsonrpc' })
+          settings: expect.objectContaining({
+            rpcUrl: 'http://localhost:6801/jsonrpc'
+          })
         }),
         'ok'
       );
@@ -43,14 +48,24 @@ describe('OptionsApp', () => {
   it('tests connection', async () => {
     const user = userEvent.setup();
     mockedSend
-      .mockResolvedValueOnce({ type: 'settings', settings: createDefaultSettings() })
+      .mockResolvedValueOnce({
+        type: 'settings',
+        settings: createDefaultSettings()
+      })
       .mockResolvedValueOnce({ type: 'ok' })
-      .mockResolvedValueOnce({ type: 'rpcStatus', status: { ok: true, version: '1.37.0' } });
+      .mockResolvedValueOnce({
+        type: 'rpcStatus',
+        status: { ok: true, version: '1.37.0' }
+      });
 
     render(<OptionsApp />);
 
-    await user.click(await screen.findByRole('button', { name: 'Test connection' }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Test connection' })
+    );
 
-    expect(await screen.findByText('Connected: aria2 1.37.0')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Connected: aria2 1.37.0')
+    ).toBeInTheDocument();
   });
 });

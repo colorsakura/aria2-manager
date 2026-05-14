@@ -9,7 +9,10 @@ export function OptionsApp() {
 
   useEffect(() => {
     async function load() {
-      const response = await sendRuntimeMessage({ type: 'settings:get' }, 'settings');
+      const response = await sendRuntimeMessage(
+        { type: 'settings:get' },
+        'settings'
+      );
       setSettings(response.settings);
     }
 
@@ -19,28 +22,43 @@ export function OptionsApp() {
   async function save(event: FormEvent) {
     event.preventDefault();
     if (!settings) return;
-    await sendRuntimeMessage({ type: 'settings:save', settings: normalizeSettings(settings) }, 'ok');
+    await sendRuntimeMessage(
+      { type: 'settings:save', settings: normalizeSettings(settings) },
+      'ok'
+    );
     setMessage('Settings saved');
   }
 
   async function testConnection() {
     if (!settings) return;
-    await sendRuntimeMessage({ type: 'settings:save', settings: normalizeSettings(settings) }, 'ok');
-    const response = await sendRuntimeMessage({ type: 'aria2:test' }, 'rpcStatus');
+    await sendRuntimeMessage(
+      { type: 'settings:save', settings: normalizeSettings(settings) },
+      'ok'
+    );
+    const response = await sendRuntimeMessage(
+      { type: 'aria2:test' },
+      'rpcStatus'
+    );
     setStatus(response.status);
   }
 
   if (!settings) {
-    return <main className="p-6 text-sm text-slate-600">Loading settings...</main>;
+    return (
+      <main className="p-6 text-sm text-slate-600">Loading settings...</main>
+    );
   }
 
   return (
     <main className="min-h-screen bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <form className="mx-auto max-w-3xl space-y-6" onSubmit={(event) => void save(event)}>
+      <form
+        className="mx-auto max-w-3xl space-y-6"
+        onSubmit={(event) => void save(event)}
+      >
         <header>
           <h1 className="text-2xl font-semibold">Aria2 Manager Settings</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Configure local aria2 RPC, interception rules, and request context forwarding.
+            Configure local aria2 RPC, interception rules, and request context
+            forwarding.
           </p>
         </header>
 
@@ -52,7 +70,9 @@ export function OptionsApp() {
               className="w-full rounded border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700"
               aria-label="RPC URL"
               value={settings.rpcUrl}
-              onChange={(event) => setSettings({ ...settings, rpcUrl: event.currentTarget.value })}
+              onChange={(event) =>
+                setSettings({ ...settings, rpcUrl: event.currentTarget.value })
+              }
             />
           </label>
           <label className="block space-y-1">
@@ -62,7 +82,12 @@ export function OptionsApp() {
               aria-label="RPC token"
               type="password"
               value={settings.rpcToken}
-              onChange={(event) => setSettings({ ...settings, rpcToken: event.currentTarget.value })}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  rpcToken: event.currentTarget.value
+                })
+              }
             />
           </label>
           <button
@@ -73,7 +98,11 @@ export function OptionsApp() {
             Test connection
           </button>
           {status ? (
-            <p>{status.ok ? `Connected: aria2 ${status.version}` : `Disconnected: ${status.message}`}</p>
+            <p>
+              {status.ok
+                ? `Connected: aria2 ${status.version}`
+                : `Disconnected: ${status.message}`}
+            </p>
           ) : null}
         </section>
 
@@ -83,7 +112,12 @@ export function OptionsApp() {
             <input
               type="checkbox"
               checked={settings.enabled}
-              onChange={(event) => setSettings({ ...settings, enabled: event.currentTarget.checked })}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  enabled: event.currentTarget.checked
+                })
+              }
             />
             <span>Enable interception</span>
           </label>
@@ -91,7 +125,10 @@ export function OptionsApp() {
             label="Extensions"
             value={settings.rules.extensions.join(', ')}
             onChange={(value) =>
-              setSettings({ ...settings, rules: { ...settings.rules, extensions: splitList(value) } })
+              setSettings({
+                ...settings,
+                rules: { ...settings.rules, extensions: splitList(value) }
+              })
             }
           />
           <label className="block space-y-1">
@@ -103,7 +140,13 @@ export function OptionsApp() {
               min="0"
               value={settings.rules.minSizeMb}
               onChange={(event) =>
-                setSettings({ ...settings, rules: { ...settings.rules, minSizeMb: Number(event.currentTarget.value) } })
+                setSettings({
+                  ...settings,
+                  rules: {
+                    ...settings.rules,
+                    minSizeMb: Number(event.currentTarget.value)
+                  }
+                })
               }
             />
           </label>
@@ -111,14 +154,20 @@ export function OptionsApp() {
             label="Included domains"
             value={settings.rules.includedDomains.join('\n')}
             onChange={(value) =>
-              setSettings({ ...settings, rules: { ...settings.rules, includedDomains: splitList(value) } })
+              setSettings({
+                ...settings,
+                rules: { ...settings.rules, includedDomains: splitList(value) }
+              })
             }
           />
           <TextAreaField
             label="Excluded domains"
             value={settings.rules.excludedDomains.join('\n')}
             onChange={(value) =>
-              setSettings({ ...settings, rules: { ...settings.rules, excludedDomains: splitList(value) } })
+              setSettings({
+                ...settings,
+                rules: { ...settings.rules, excludedDomains: splitList(value) }
+              })
             }
           />
         </section>
@@ -126,36 +175,51 @@ export function OptionsApp() {
         <section className="space-y-4 rounded-xl bg-white p-5 shadow-sm dark:bg-slate-900">
           <h2 className="text-lg font-medium">Request context and privacy</h2>
           <p className="text-sm text-slate-500">
-            Enabled values are sent only to your configured aria2 instance for downloads that match your rules.
+            Enabled values are sent only to your configured aria2 instance for
+            downloads that match your rules.
           </p>
           <Toggle
             label="Send cookies"
             checked={settings.requestContext.sendCookies}
             onChange={(sendCookies) =>
-              setSettings({ ...settings, requestContext: { ...settings.requestContext, sendCookies } })
+              setSettings({
+                ...settings,
+                requestContext: { ...settings.requestContext, sendCookies }
+              })
             }
           />
           <Toggle
             label="Send Referer"
             checked={settings.requestContext.sendReferer}
             onChange={(sendReferer) =>
-              setSettings({ ...settings, requestContext: { ...settings.requestContext, sendReferer } })
+              setSettings({
+                ...settings,
+                requestContext: { ...settings.requestContext, sendReferer }
+              })
             }
           />
           <Toggle
             label="Send User-Agent"
             checked={settings.requestContext.sendUserAgent}
             onChange={(sendUserAgent) =>
-              setSettings({ ...settings, requestContext: { ...settings.requestContext, sendUserAgent } })
+              setSettings({
+                ...settings,
+                requestContext: { ...settings.requestContext, sendUserAgent }
+              })
             }
           />
         </section>
 
         <div className="flex items-center gap-3">
-          <button className="rounded bg-blue-600 px-4 py-2 text-white" type="submit">
+          <button
+            className="rounded bg-blue-600 px-4 py-2 text-white"
+            type="submit"
+          >
             Save settings
           </button>
-          {message ? <span className="text-sm text-emerald-600">{message}</span> : null}
+          {message ? (
+            <span className="text-sm text-emerald-600">{message}</span>
+          ) : null}
         </div>
       </form>
     </main>
@@ -195,7 +259,11 @@ function Toggle({
 }) {
   return (
     <label className="flex items-center gap-2">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.currentTarget.checked)} />
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.currentTarget.checked)}
+      />
       <span>{label}</span>
     </label>
   );
@@ -214,10 +282,18 @@ function normalizeSettings(settings: ExtensionSettings): ExtensionSettings {
     rpcUrl: settings.rpcUrl.trim(),
     rpcToken: settings.rpcToken.trim(),
     rules: {
-      extensions: settings.rules.extensions.map((item) => item.trim()).filter(Boolean),
-      minSizeMb: Number.isFinite(settings.rules.minSizeMb) ? settings.rules.minSizeMb : 0,
-      includedDomains: settings.rules.includedDomains.map((item) => item.trim()).filter(Boolean),
-      excludedDomains: settings.rules.excludedDomains.map((item) => item.trim()).filter(Boolean)
+      extensions: settings.rules.extensions
+        .map((item) => item.trim())
+        .filter(Boolean),
+      minSizeMb: Number.isFinite(settings.rules.minSizeMb)
+        ? settings.rules.minSizeMb
+        : 0,
+      includedDomains: settings.rules.includedDomains
+        .map((item) => item.trim())
+        .filter(Boolean),
+      excludedDomains: settings.rules.excludedDomains
+        .map((item) => item.trim())
+        .filter(Boolean)
     }
   };
 }

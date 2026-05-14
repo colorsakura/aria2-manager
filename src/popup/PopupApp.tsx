@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { sendRuntimeMessage } from '../shared/messages';
-import type { Aria2ActiveTask, ExtensionSettings, RpcStatus } from '../shared/types';
+import type {
+  Aria2ActiveTask,
+  ExtensionSettings,
+  RpcStatus
+} from '../shared/types';
 
 interface PopupState {
   settings: ExtensionSettings;
@@ -19,11 +23,20 @@ export function PopupApp() {
 
   async function refresh() {
     try {
-      const response = await sendRuntimeMessage({ type: 'popup:getState' }, 'popupState');
-      setState({ settings: response.settings, rpcStatus: response.rpcStatus, tasks: response.tasks });
+      const response = await sendRuntimeMessage(
+        { type: 'popup:getState' },
+        'popupState'
+      );
+      setState({
+        settings: response.settings,
+        rpcStatus: response.rpcStatus,
+        tasks: response.tasks
+      });
       setError(null);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to load popup state');
+      setError(
+        caught instanceof Error ? caught.message : 'Failed to load popup state'
+      );
     }
   }
 
@@ -45,7 +58,11 @@ export function PopupApp() {
     <main className="w-96 space-y-4 bg-slate-50 p-4 text-sm text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <header className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">Aria2 Manager</h1>
-        <span className={state.settings.enabled ? 'text-emerald-600' : 'text-slate-500'}>
+        <span
+          className={
+            state.settings.enabled ? 'text-emerald-600' : 'text-slate-500'
+          }
+        >
           {state.settings.enabled ? 'Enabled' : 'Paused'}
         </span>
       </header>
@@ -88,7 +105,10 @@ export function PopupApp() {
         ) : (
           <ul className="space-y-2">
             {state.tasks.map((task) => (
-              <li key={task.gid} className="rounded border border-slate-200 p-2 dark:border-slate-700">
+              <li
+                key={task.gid}
+                className="rounded border border-slate-200 p-2 dark:border-slate-700"
+              >
                 <div className="flex justify-between gap-2">
                   <span className="truncate font-medium">{task.name}</span>
                   <span>{task.progress}%</span>

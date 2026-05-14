@@ -12,8 +12,15 @@ import type {
 interface InterceptorDependencies {
   loadSettings: () => Promise<ExtensionSettings>;
   cancelDownload: (id: number) => Promise<void>;
-  collectRequestContext: (url: string, settings: RequestContextSettings) => Promise<RequestContextHeaders>;
-  addUri: (settings: ExtensionSettings, url: string, headers: RequestContextHeaders) => Promise<string>;
+  collectRequestContext: (
+    url: string,
+    settings: RequestContextSettings
+  ) => Promise<RequestContextHeaders>;
+  addUri: (
+    settings: ExtensionSettings,
+    url: string,
+    headers: RequestContextHeaders
+  ) => Promise<string>;
   saveLastResult: (result: LastResult) => Promise<void>;
   notify: (title: string, message: string) => Promise<void>;
   now: () => number;
@@ -24,7 +31,11 @@ export async function handleDownloadCreated(
   dependencies: InterceptorDependencies
 ): Promise<void> {
   const settings = await dependencies.loadSettings();
-  const decision = shouldInterceptDownload(download, settings.rules, settings.enabled);
+  const decision = shouldInterceptDownload(
+    download,
+    settings.rules,
+    settings.enabled
+  );
 
   if (!decision.shouldIntercept) {
     return;
@@ -33,7 +44,10 @@ export async function handleDownloadCreated(
   await dependencies.cancelDownload(download.id);
 
   try {
-    const headers = await dependencies.collectRequestContext(download.url, settings.requestContext);
+    const headers = await dependencies.collectRequestContext(
+      download.url,
+      settings.requestContext
+    );
     const gid = await dependencies.addUri(settings, download.url, headers);
     const result: LastResult = {
       status: 'success',
@@ -43,7 +57,10 @@ export async function handleDownloadCreated(
       timestamp: dependencies.now()
     };
     await dependencies.saveLastResult(result);
-    await dependencies.notify('Download sent to aria2', download.filename ?? download.url);
+    await dependencies.notify(
+      'Download sent to aria2',
+      download.filename ?? download.url
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     const result: LastResult = {
@@ -60,7 +77,10 @@ export async function handleDownloadCreated(
 
 export function createDefaultInterceptorDependencies(
   cancelDownload: (id: number) => Promise<void>,
-  collectRequestContext: (url: string, settings: RequestContextSettings) => Promise<RequestContextHeaders>,
+  collectRequestContext: (
+    url: string,
+    settings: RequestContextSettings
+  ) => Promise<RequestContextHeaders>,
   notify: (title: string, message: string) => Promise<void>
 ): InterceptorDependencies {
   return {

@@ -13,14 +13,18 @@ export async function saveSettings(settings: ExtensionSettings): Promise<void> {
   await browser.storage.local.set({ [SETTINGS_KEY]: settings });
 }
 
-export async function updateEnabled(enabled: boolean): Promise<ExtensionSettings> {
+export async function updateEnabled(
+  enabled: boolean
+): Promise<ExtensionSettings> {
   const settings = await loadSettings();
   const next = { ...settings, enabled };
   await saveSettings(next);
   return next;
 }
 
-export async function updateLastResult(lastResult: LastResult): Promise<ExtensionSettings> {
+export async function updateLastResult(
+  lastResult: LastResult
+): Promise<ExtensionSettings> {
   const settings = await loadSettings();
   const next = { ...settings, lastResult };
   await saveSettings(next);

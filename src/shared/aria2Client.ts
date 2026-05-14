@@ -1,4 +1,9 @@
-import type { Aria2ActiveTask, ExtensionSettings, RequestContextHeaders, RpcStatus } from './types';
+import type {
+  Aria2ActiveTask,
+  ExtensionSettings,
+  RequestContextHeaders,
+  RpcStatus
+} from './types';
 
 interface RpcSuccess<T> {
   result: T;
@@ -19,9 +24,15 @@ interface RawAria2Task {
   files?: Array<{ path?: string; uris?: Array<{ uri?: string }> }>;
 }
 
-export async function testConnection(settings: ExtensionSettings): Promise<RpcStatus> {
+export async function testConnection(
+  settings: ExtensionSettings
+): Promise<RpcStatus> {
   try {
-    const result = await callRpc<{ version: string }>(settings, 'aria2.getVersion', []);
+    const result = await callRpc<{ version: string }>(
+      settings,
+      'aria2.getVersion',
+      []
+    );
     return { ok: true, version: result.version };
   } catch (error) {
     return { ok: false, message: errorMessage(error) };
@@ -33,20 +44,36 @@ export async function addUri(
   url: string,
   headers: RequestContextHeaders
 ): Promise<string> {
-  return callRpc<string>(settings, 'aria2.addUri', [[url], buildOptions(headers)]);
+  return callRpc<string>(settings, 'aria2.addUri', [
+    [url],
+    buildOptions(headers)
+  ]);
 }
 
-export async function getActiveTasks(settings: ExtensionSettings): Promise<Aria2ActiveTask[]> {
+export async function getActiveTasks(
+  settings: ExtensionSettings
+): Promise<Aria2ActiveTask[]> {
   const tasks = await callRpc<RawAria2Task[]>(settings, 'aria2.tellActive', []);
   return tasks.slice(0, 5).map(normalizeTask);
 }
 
-async function callRpc<T>(settings: ExtensionSettings, method: string, params: unknown[]): Promise<T> {
-  const rpcParams = settings.rpcToken.trim() ? [`token:${settings.rpcToken.trim()}`, ...params] : params;
+async function callRpc<T>(
+  settings: ExtensionSettings,
+  method: string,
+  params: unknown[]
+): Promise<T> {
+  const rpcParams = settings.rpcToken.trim()
+    ? [`token:${settings.rpcToken.trim()}`, ...params]
+    : params;
   const response = await fetch(settings.rpcUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: method, method, params: rpcParams })
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: method,
+      method,
+      params: rpcParams
+    })
   });
 
   if (!response.ok) {
@@ -61,7 +88,9 @@ async function callRpc<T>(settings: ExtensionSettings, method: string, params: u
   return payload.result;
 }
 
-function buildOptions(headers: RequestContextHeaders): Record<string, string[]> {
+function buildOptions(
+  headers: RequestContextHeaders
+): Record<string, string[]> {
   const header: string[] = [];
   if (headers.cookie) header.push(`Cookie: ${headers.cookie}`);
   if (headers.referer) header.push(`Referer: ${headers.referer}`);

@@ -30,7 +30,10 @@ describe('shouldInterceptDownload', () => {
   it('intercepts matching extensions case-insensitively and ignores leading dots', () => {
     expect(
       shouldInterceptDownload(
-        candidate({ url: 'https://example.com/ubuntu.ISO', filename: 'ubuntu.ISO' }),
+        candidate({
+          url: 'https://example.com/ubuntu.ISO',
+          filename: 'ubuntu.ISO'
+        }),
         baseRules,
         true
       ).shouldIntercept
@@ -40,7 +43,11 @@ describe('shouldInterceptDownload', () => {
   it('does not treat an empty extension list as match everything', () => {
     expect(
       shouldInterceptDownload(
-        candidate({ url: 'https://example.com/archive.zip', filename: 'archive.zip', totalBytes: 1024 }),
+        candidate({
+          url: 'https://example.com/archive.zip',
+          filename: 'archive.zip',
+          totalBytes: 1024
+        }),
         { ...baseRules, extensions: [], minSizeMb: 0 },
         true
       )
@@ -50,7 +57,11 @@ describe('shouldInterceptDownload', () => {
   it('intercepts when reliable size meets the threshold', () => {
     expect(
       shouldInterceptDownload(
-        candidate({ url: 'https://example.com/download', filename: 'download', totalBytes: 11 * 1024 * 1024 }),
+        candidate({
+          url: 'https://example.com/download',
+          filename: 'download',
+          totalBytes: 11 * 1024 * 1024
+        }),
         { ...baseRules, extensions: [] },
         true
       ).shouldIntercept
@@ -60,7 +71,11 @@ describe('shouldInterceptDownload', () => {
   it('ignores size rule when totalBytes is unknown', () => {
     expect(
       shouldInterceptDownload(
-        candidate({ url: 'https://example.com/download', filename: 'download', totalBytes: undefined }),
+        candidate({
+          url: 'https://example.com/download',
+          filename: 'download',
+          totalBytes: undefined
+        }),
         { ...baseRules, extensions: [] },
         true
       )

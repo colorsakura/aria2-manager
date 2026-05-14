@@ -3,7 +3,14 @@
   "name": "Aria2 Manager",
   "version": "0.1.0",
   "description": "Send matching Firefox downloads to a local aria2 JSON-RPC instance.",
-  "permissions": ["downloads", "storage", "notifications", "webRequest", "cookies", "<all_urls>"],
+  "permissions": [
+    "downloads",
+    "storage",
+    "notifications",
+    "webRequest",
+    "cookies",
+    "<all_urls>"
+  ],
   "background": {
     "scripts": ["background.js"]
   },

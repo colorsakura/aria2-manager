@@ -38,15 +38,27 @@ describe('PopupApp', () => {
         }
       },
       rpcStatus: { ok: true, version: '1.37.0' },
-      tasks: [{ gid: '1', name: 'file.zip', status: 'active', progress: 50, downloadSpeed: 1024 }]
+      tasks: [
+        {
+          gid: '1',
+          name: 'file.zip',
+          status: 'active',
+          progress: 50,
+          downloadSpeed: 1024
+        }
+      ]
     });
 
     render(<PopupApp />);
 
     expect(await screen.findByText('Aria2 Manager')).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'Enable interception' })).toBeChecked();
+    expect(
+      screen.getByRole('checkbox', { name: 'Enable interception' })
+    ).toBeChecked();
     expect(screen.getByText('Connected: aria2 1.37.0')).toBeInTheDocument();
-    expect(screen.getByText('Last: file.zip sent to aria2')).toBeInTheDocument();
+    expect(
+      screen.getByText('Last: file.zip sent to aria2')
+    ).toBeInTheDocument();
     expect(screen.getByText('file.zip')).toBeInTheDocument();
     expect(screen.getByText('50%')).toBeInTheDocument();
   });
@@ -64,10 +76,15 @@ describe('PopupApp', () => {
 
     render(<PopupApp />);
 
-    await user.click(await screen.findByRole('checkbox', { name: 'Enable interception' }));
+    await user.click(
+      await screen.findByRole('checkbox', { name: 'Enable interception' })
+    );
 
     await waitFor(() => {
-      expect(mockedSend).toHaveBeenCalledWith({ type: 'settings:setEnabled', enabled: false }, 'ok');
+      expect(mockedSend).toHaveBeenCalledWith(
+        { type: 'settings:setEnabled', enabled: false },
+        'ok'
+      );
     });
   });
 });

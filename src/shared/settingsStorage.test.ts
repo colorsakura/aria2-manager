@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDefaultSettings } from './defaultSettings';
-import { loadSettings, saveSettings, updateEnabled, updateLastResult } from './settingsStorage';
+import {
+  loadSettings,
+  saveSettings,
+  updateEnabled,
+  updateLastResult
+} from './settingsStorage';
 
 const storage = new Map<string, unknown>();
 
@@ -10,7 +15,8 @@ vi.mock('webextension-polyfill', () => ({
       local: {
         get: vi.fn(async (key: string) => ({ [key]: storage.get(key) })),
         set: vi.fn(async (items: Record<string, unknown>) => {
-          for (const [key, value] of Object.entries(items)) storage.set(key, value);
+          for (const [key, value] of Object.entries(items))
+            storage.set(key, value);
         })
       }
     }
@@ -27,13 +33,18 @@ describe('settingsStorage', () => {
   });
 
   it('merges stored partial settings with defaults', async () => {
-    storage.set('settings', { rpcUrl: 'http://localhost:6801/jsonrpc', rules: { minSizeMb: 25 } });
+    storage.set('settings', {
+      rpcUrl: 'http://localhost:6801/jsonrpc',
+      rules: { minSizeMb: 25 }
+    });
 
     const settings = await loadSettings();
 
     expect(settings.rpcUrl).toBe('http://localhost:6801/jsonrpc');
     expect(settings.rules.minSizeMb).toBe(25);
-    expect(settings.rules.extensions).toEqual(createDefaultSettings().rules.extensions);
+    expect(settings.rules.extensions).toEqual(
+      createDefaultSettings().rules.extensions
+    );
   });
 
   it('saves complete settings', async () => {
@@ -49,8 +60,12 @@ describe('settingsStorage', () => {
 
     await updateEnabled(false);
 
-    expect((storage.get('settings') as { enabled: boolean }).enabled).toBe(false);
-    expect((storage.get('settings') as { rpcUrl: string }).rpcUrl).toBe('http://localhost:6801/jsonrpc');
+    expect((storage.get('settings') as { enabled: boolean }).enabled).toBe(
+      false
+    );
+    expect((storage.get('settings') as { rpcUrl: string }).rpcUrl).toBe(
+      'http://localhost:6801/jsonrpc'
+    );
   });
 
   it('updates last result', async () => {
@@ -63,6 +78,8 @@ describe('settingsStorage', () => {
 
     await updateLastResult(result);
 
-    expect((storage.get('settings') as { lastResult: unknown }).lastResult).toEqual(result);
+    expect(
+      (storage.get('settings') as { lastResult: unknown }).lastResult
+    ).toEqual(result);
   });
 });

@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createDefaultSettings } from '../shared/defaultSettings';
-import type { DownloadCandidate, LastResult, RequestContextHeaders } from '../shared/types';
+import type {
+  DownloadCandidate,
+  LastResult,
+  RequestContextHeaders
+} from '../shared/types';
 import { handleDownloadCreated } from './interceptor';
 
 const download: DownloadCandidate = {
@@ -10,14 +14,19 @@ const download: DownloadCandidate = {
   totalBytes: 1024
 };
 
-function deps(overrides: Partial<Parameters<typeof handleDownloadCreated>[1]> = {}) {
+function deps(
+  overrides: Partial<Parameters<typeof handleDownloadCreated>[1]> = {}
+) {
   const settings = createDefaultSettings();
   const savedResults: LastResult[] = [];
 
   return {
     loadSettings: vi.fn(async () => settings),
     cancelDownload: vi.fn(async () => undefined),
-    collectRequestContext: vi.fn(async () => ({ referer: 'https://example.com/page' }) as RequestContextHeaders),
+    collectRequestContext: vi.fn(
+      async () =>
+        ({ referer: 'https://example.com/page' }) as RequestContextHeaders
+    ),
     addUri: vi.fn(async () => 'gid123'),
     saveLastResult: vi.fn(async (result: LastResult) => {
       savedResults.push(result);
@@ -31,7 +40,12 @@ function deps(overrides: Partial<Parameters<typeof handleDownloadCreated>[1]> = 
 
 describe('handleDownloadCreated', () => {
   it('does nothing when disabled', async () => {
-    const dependencyBag = deps({ loadSettings: vi.fn(async () => ({ ...createDefaultSettings(), enabled: false })) });
+    const dependencyBag = deps({
+      loadSettings: vi.fn(async () => ({
+        ...createDefaultSettings(),
+        enabled: false
+      }))
+    });
 
     await handleDownloadCreated(download, dependencyBag);
 
@@ -61,9 +75,13 @@ describe('handleDownloadCreated', () => {
       'https://example.com/file.zip',
       createDefaultSettings().requestContext
     );
-    expect(dependencyBag.addUri).toHaveBeenCalledWith(createDefaultSettings(), 'https://example.com/file.zip', {
-      referer: 'https://example.com/page'
-    });
+    expect(dependencyBag.addUri).toHaveBeenCalledWith(
+      createDefaultSettings(),
+      'https://example.com/file.zip',
+      {
+        referer: 'https://example.com/page'
+      }
+    );
     expect(dependencyBag.saveLastResult).toHaveBeenCalledWith({
       status: 'success',
       url: 'https://example.com/file.zip',
@@ -74,7 +92,9 @@ describe('handleDownloadCreated', () => {
   });
 
   it('records and notifies failure without browser fallback', async () => {
-    const dependencyBag = deps({ addUri: vi.fn(async () => Promise.reject(new Error('HTTP 500'))) });
+    const dependencyBag = deps({
+      addUri: vi.fn(async () => Promise.reject(new Error('HTTP 500')))
+    });
 
     await handleDownloadCreated(download, dependencyBag);
 
@@ -86,6 +106,9 @@ describe('handleDownloadCreated', () => {
       message: 'HTTP 500',
       timestamp: 1000
     });
-    expect(dependencyBag.notify).toHaveBeenCalledWith('Failed to send download to aria2', 'HTTP 500');
+    expect(dependencyBag.notify).toHaveBeenCalledWith(
+      'Failed to send download to aria2',
+      'HTTP 500'
+    );
   });
 });

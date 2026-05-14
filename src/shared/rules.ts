@@ -17,7 +17,10 @@ export function shouldInterceptDownload(
     return { shouldIntercept: false, reason: 'domain-excluded' };
   }
 
-  if (rules.includedDomains.length > 0 && (!hostname || !domainMatches(hostname, rules.includedDomains))) {
+  if (
+    rules.includedDomains.length > 0 &&
+    (!hostname || !domainMatches(hostname, rules.includedDomains))
+  ) {
     return { shouldIntercept: false, reason: 'domain-not-included' };
   }
 
@@ -43,16 +46,24 @@ function getHostname(url: string): string | null {
 function domainMatches(hostname: string, domains: string[]): boolean {
   return domains.some((domain) => {
     const normalized = domain.trim().toLowerCase();
-    return normalized.length > 0 && (hostname === normalized || hostname.endsWith(`.${normalized}`));
+    return (
+      normalized.length > 0 &&
+      (hostname === normalized || hostname.endsWith(`.${normalized}`))
+    );
   });
 }
 
-function extensionMatches(download: DownloadCandidate, extensions: string[]): boolean {
+function extensionMatches(
+  download: DownloadCandidate,
+  extensions: string[]
+): boolean {
   if (extensions.length === 0) {
     return false;
   }
 
-  const extension = extractExtension(download.filename) ?? extractExtension(getUrlPathname(download.url));
+  const extension =
+    extractExtension(download.filename) ??
+    extractExtension(getUrlPathname(download.url));
   if (!extension) {
     return false;
   }
@@ -87,7 +98,10 @@ function normalizeExtension(extension: string): string {
   return extension.trim().replace(/^\./, '').toLowerCase();
 }
 
-function sizeMatches(totalBytes: number | undefined, minSizeMb: number): boolean {
+function sizeMatches(
+  totalBytes: number | undefined,
+  minSizeMb: number
+): boolean {
   if (!totalBytes || minSizeMb <= 0) {
     return false;
   }

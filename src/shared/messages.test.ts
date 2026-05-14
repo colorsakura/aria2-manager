@@ -12,6 +12,8 @@ describe('assertResponseType', () => {
   it('throws when type does not match', () => {
     const response: RuntimeResponse = { type: 'ok' };
 
-    expect(() => assertResponseType(response, 'settings')).toThrow('Expected settings response but received ok');
+    expect(() => assertResponseType(response, 'settings')).toThrow(
+      'Expected settings response but received ok'
+    );
   });
 });

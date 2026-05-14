@@ -1,4 +1,7 @@
-import type { RequestContextHeaders, RequestContextSettings } from '../shared/types';
+import type {
+  RequestContextHeaders,
+  RequestContextSettings
+} from '../shared/types';
 
 interface HeaderRecord {
   url: string;
@@ -43,7 +46,10 @@ export class RequestContextTracker {
     this.prune();
   }
 
-  async collect(url: string, settings: RequestContextSettings): Promise<RequestContextHeaders> {
+  async collect(
+    url: string,
+    settings: RequestContextSettings
+  ): Promise<RequestContextHeaders> {
     this.prune();
 
     const record = this.records.get(url);
@@ -60,7 +66,9 @@ export class RequestContextTracker {
     if (settings.sendCookies) {
       const cookies = await this.getCookies(url);
       if (cookies.length > 0) {
-        headers.cookie = cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ');
+        headers.cookie = cookies
+          .map((cookie) => `${cookie.name}=${cookie.value}`)
+          .join('; ');
       }
     }
 
@@ -77,6 +85,11 @@ export class RequestContextTracker {
   }
 }
 
-function findHeader(headers: HeaderInput['requestHeaders'], name: string): string | undefined {
-  return headers?.find((header) => header.name.toLowerCase() === name.toLowerCase())?.value;
+function findHeader(
+  headers: HeaderInput['requestHeaders'],
+  name: string
+): string | undefined {
+  return headers?.find(
+    (header) => header.name.toLowerCase() === name.toLowerCase()
+  )?.value;
 }

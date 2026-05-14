@@ -62,7 +62,9 @@ export interface Aria2ActiveTask {
   downloadSpeed: number;
 }
 
-export type RpcStatus = { ok: true; version: string } | { ok: false; message: string };
+export type RpcStatus =
+  | { ok: true; version: string }
+  | { ok: false; message: string };
 
 export type RuntimeRequest =
   | { type: 'settings:get' }
@@ -77,4 +79,9 @@ export type RuntimeResponse =
   | { type: 'ok' }
   | { type: 'rpcStatus'; status: RpcStatus }
   | { type: 'activeTasks'; tasks: Aria2ActiveTask[]; status: RpcStatus }
-  | { type: 'popupState'; settings: ExtensionSettings; rpcStatus: RpcStatus; tasks: Aria2ActiveTask[] };
+  | {
+      type: 'popupState';
+      settings: ExtensionSettings;
+      rpcStatus: RpcStatus;
+      tasks: Aria2ActiveTask[];
+    };

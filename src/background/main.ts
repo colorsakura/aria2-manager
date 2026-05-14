@@ -1,17 +1,33 @@
 import browser from 'webextension-polyfill';
 import { getActiveTasks, testConnection } from '../shared/aria2Client';
-import { loadSettings, saveSettings, updateEnabled } from '../shared/settingsStorage';
-import type { DownloadCandidate, RuntimeRequest, RuntimeResponse } from '../shared/types';
-import { createDefaultInterceptorDependencies, handleDownloadCreated } from './interceptor';
+import {
+  loadSettings,
+  saveSettings,
+  updateEnabled
+} from '../shared/settingsStorage';
+import type {
+  DownloadCandidate,
+  RuntimeRequest,
+  RuntimeResponse
+} from '../shared/types';
+import {
+  createDefaultInterceptorDependencies,
+  handleDownloadCreated
+} from './interceptor';
 import { RequestContextTracker } from './requestContext';
 
-const requestContextTracker = new RequestContextTracker((url) => browser.cookies.getAll({ url }));
+const requestContextTracker = new RequestContextTracker((url) =>
+  browser.cookies.getAll({ url })
+);
 
 browser.webRequest.onBeforeSendHeaders.addListener(
   (details) => {
     requestContextTracker.recordHeaders({
       url: details.url,
-      requestHeaders: details.requestHeaders?.map((header) => ({ name: header.name, value: header.value }))
+      requestHeaders: details.requestHeaders?.map((header) => ({
+        name: header.name,
+        value: header.value
+      }))
     });
   },
   { urls: ['<all_urls>'] },
@@ -23,7 +39,8 @@ browser.downloads.onCreated.addListener((downloadItem) => {
     id: downloadItem.id,
     url: downloadItem.url,
     filename: downloadItem.filename,
-    totalBytes: downloadItem.totalBytes > 0 ? downloadItem.totalBytes : undefined
+    totalBytes:
+      downloadItem.totalBytes > 0 ? downloadItem.totalBytes : undefined
   };
 
   void handleDownloadCreated(
@@ -36,9 +53,13 @@ browser.downloads.onCreated.addListener((downloadItem) => {
   );
 });
 
-browser.runtime.onMessage.addListener((request: unknown) => handleRuntimeMessage(request as RuntimeRequest));
+browser.runtime.onMessage.addListener((request: unknown) =>
+  handleRuntimeMessage(request as RuntimeRequest)
+);
 
-async function handleRuntimeMessage(request: RuntimeRequest): Promise<RuntimeResponse> {
+async function handleRuntimeMessage(
+  request: RuntimeRequest
+): Promise<RuntimeResponse> {
   if (request.type === 'settings:get') {
     return { type: 'settings', settings: await loadSettings() };
   }
@@ -54,7 +75,10 @@ async function handleRuntimeMessage(request: RuntimeRequest): Promise<RuntimeRes
   }
 
   if (request.type === 'aria2:test') {
-    return { type: 'rpcStatus', status: await testConnection(await loadSettings()) };
+    return {
+      type: 'rpcStatus',
+      status: await testConnection(await loadSettings())
+    };
   }
 
   if (request.type === 'aria2:activeTasks') {
