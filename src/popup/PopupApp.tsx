@@ -74,7 +74,20 @@ export function PopupApp() {
   return (
     <main className="w-96 space-y-4 bg-slate-50 p-4 text-sm text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <header className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Aria2 Manager</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">Aria2 Manager</h1>
+          <span
+            aria-label={
+              state.rpcStatus.ok ? 'RPC connected' : 'RPC disconnected'
+            }
+            className={
+              state.rpcStatus.ok
+                ? 'size-2.5 rounded-full bg-emerald-500'
+                : 'size-2.5 rounded-full bg-red-500'
+            }
+            title={state.rpcStatus.ok ? 'RPC connected' : 'RPC disconnected'}
+          />
+        </div>
         <span
           className={
             state.settings.enabled ? 'text-emerald-600' : 'text-slate-500'
@@ -130,22 +143,6 @@ export function PopupApp() {
             })
           }
         />
-      </section>
-
-      <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <div className="flex items-center justify-between gap-2">
-          <p>
-            {state.rpcStatus.ok
-              ? `Connected: aria2 ${state.rpcStatus.version}`
-              : `Disconnected: ${state.rpcStatus.message}`}
-          </p>
-          <button
-            className="rounded bg-slate-900 px-3 py-1 text-white dark:bg-slate-100 dark:text-slate-900"
-            onClick={() => void refresh()}
-          >
-            Test
-          </button>
-        </div>
       </section>
 
       <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
