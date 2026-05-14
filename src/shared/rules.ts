@@ -13,22 +13,35 @@ export function shouldInterceptDownload(
 
   const hostname = getHostname(download.url);
 
-  if (hostname && domainMatches(hostname, rules.excludedDomains)) {
+  if (
+    rules.excludedDomainsEnabled &&
+    hostname &&
+    domainMatches(hostname, rules.excludedDomains)
+  ) {
     return { shouldIntercept: false, reason: 'domain-excluded' };
   }
 
   if (
+    rules.includedDomainsEnabled &&
     rules.includedDomains.length > 0 &&
     (!hostname || !domainMatches(hostname, rules.includedDomains))
   ) {
     return { shouldIntercept: false, reason: 'domain-not-included' };
   }
 
-  if (extensionMatches(download, rules.extensions)) {
+  const hasPositiveRule = rules.extensionsEnabled || rules.minSizeEnabled;
+  if (!hasPositiveRule) {
+    return { shouldIntercept: true, reason: 'no-positive-rule-enabled' };
+  }
+
+  if (rules.extensionsEnabled && extensionMatches(download, rules.extensions)) {
     return { shouldIntercept: true, reason: 'extension-matched' };
   }
 
-  if (sizeMatches(download.totalBytes, rules.minSizeMb)) {
+  if (
+    rules.minSizeEnabled &&
+    sizeMatches(download.totalBytes, rules.minSizeMb)
+  ) {
     return { shouldIntercept: true, reason: 'size-matched' };
   }
 

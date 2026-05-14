@@ -15,9 +15,13 @@ export type LastResult =
     };
 
 export interface RuleSettings {
+  extensionsEnabled: boolean;
   extensions: string[];
+  minSizeEnabled: boolean;
   minSizeMb: number;
+  includedDomainsEnabled: boolean;
   includedDomains: string[];
+  excludedDomainsEnabled: boolean;
   excludedDomains: string[];
 }
 

@@ -121,6 +121,16 @@ export function OptionsApp() {
             />
             <span>Enable interception</span>
           </label>
+          <Toggle
+            label="Enable extension rule"
+            checked={settings.rules.extensionsEnabled}
+            onChange={(extensionsEnabled) =>
+              setSettings({
+                ...settings,
+                rules: { ...settings.rules, extensionsEnabled }
+              })
+            }
+          />
           <TextAreaField
             label="Extensions"
             value={settings.rules.extensions.join(', ')}
@@ -128,6 +138,16 @@ export function OptionsApp() {
               setSettings({
                 ...settings,
                 rules: { ...settings.rules, extensions: splitList(value) }
+              })
+            }
+          />
+          <Toggle
+            label="Enable minimum size rule"
+            checked={settings.rules.minSizeEnabled}
+            onChange={(minSizeEnabled) =>
+              setSettings({
+                ...settings,
+                rules: { ...settings.rules, minSizeEnabled }
               })
             }
           />
@@ -150,6 +170,16 @@ export function OptionsApp() {
               }
             />
           </label>
+          <Toggle
+            label="Enable included domains rule"
+            checked={settings.rules.includedDomainsEnabled}
+            onChange={(includedDomainsEnabled) =>
+              setSettings({
+                ...settings,
+                rules: { ...settings.rules, includedDomainsEnabled }
+              })
+            }
+          />
           <TextAreaField
             label="Included domains"
             value={settings.rules.includedDomains.join('\n')}
@@ -157,6 +187,16 @@ export function OptionsApp() {
               setSettings({
                 ...settings,
                 rules: { ...settings.rules, includedDomains: splitList(value) }
+              })
+            }
+          />
+          <Toggle
+            label="Enable excluded domains rule"
+            checked={settings.rules.excludedDomainsEnabled}
+            onChange={(excludedDomainsEnabled) =>
+              setSettings({
+                ...settings,
+                rules: { ...settings.rules, excludedDomainsEnabled }
               })
             }
           />
@@ -282,15 +322,19 @@ function normalizeSettings(settings: ExtensionSettings): ExtensionSettings {
     rpcUrl: settings.rpcUrl.trim(),
     rpcToken: settings.rpcToken.trim(),
     rules: {
+      extensionsEnabled: settings.rules.extensionsEnabled,
       extensions: settings.rules.extensions
         .map((item) => item.trim())
         .filter(Boolean),
+      minSizeEnabled: settings.rules.minSizeEnabled,
       minSizeMb: Number.isFinite(settings.rules.minSizeMb)
         ? settings.rules.minSizeMb
         : 0,
+      includedDomainsEnabled: settings.rules.includedDomainsEnabled,
       includedDomains: settings.rules.includedDomains
         .map((item) => item.trim())
         .filter(Boolean),
+      excludedDomainsEnabled: settings.rules.excludedDomainsEnabled,
       excludedDomains: settings.rules.excludedDomains
         .map((item) => item.trim())
         .filter(Boolean)

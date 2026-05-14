@@ -3,9 +3,13 @@ import type { DownloadCandidate, RuleSettings } from './types';
 import { shouldInterceptDownload } from './rules';
 
 const baseRules: RuleSettings = {
+  extensionsEnabled: true,
   extensions: ['zip', '.iso'],
+  minSizeEnabled: true,
   minSizeMb: 10,
+  includedDomainsEnabled: false,
   includedDomains: [],
+  excludedDomainsEnabled: false,
   excludedDomains: []
 };
 
@@ -54,6 +58,34 @@ describe('shouldInterceptDownload', () => {
     ).toEqual({ shouldIntercept: false, reason: 'no-positive-rule-matched' });
   });
 
+  it('intercepts all downloads when positive rules are disabled', () => {
+    expect(
+      shouldInterceptDownload(
+        candidate({
+          url: 'https://example.com/readme.txt',
+          filename: 'readme.txt',
+          totalBytes: 1024
+        }),
+        { ...baseRules, extensionsEnabled: false, minSizeEnabled: false },
+        true
+      )
+    ).toEqual({ shouldIntercept: true, reason: 'no-positive-rule-enabled' });
+  });
+
+  it('ignores disabled positive rules', () => {
+    expect(
+      shouldInterceptDownload(
+        candidate({
+          url: 'https://example.com/archive.zip',
+          filename: 'archive.zip',
+          totalBytes: 1024
+        }),
+        { ...baseRules, extensionsEnabled: false, minSizeEnabled: true },
+        true
+      )
+    ).toEqual({ shouldIntercept: false, reason: 'no-positive-rule-matched' });
+  });
+
   it('intercepts when reliable size meets the threshold', () => {
     expect(
       shouldInterceptDownload(
@@ -86,7 +118,11 @@ describe('shouldInterceptDownload', () => {
     expect(
       shouldInterceptDownload(
         candidate({ url: 'https://cdn.example.com/archive.zip' }),
-        { ...baseRules, excludedDomains: ['example.com'] },
+        {
+          ...baseRules,
+          excludedDomainsEnabled: true,
+          excludedDomains: ['example.com']
+        },
         true
       )
     ).toEqual({ shouldIntercept: false, reason: 'domain-excluded' });
@@ -96,7 +132,11 @@ describe('shouldInterceptDownload', () => {
     expect(
       shouldInterceptDownload(
         candidate({ url: 'https://other.test/archive.zip' }),
-        { ...baseRules, includedDomains: ['example.com'] },
+        {
+          ...baseRules,
+          includedDomainsEnabled: true,
+          includedDomains: ['example.com']
+        },
         true
       )
     ).toEqual({ shouldIntercept: false, reason: 'domain-not-included' });

@@ -7,9 +7,13 @@ const settings: ExtensionSettings = {
   rpcUrl: 'http://localhost:6800/jsonrpc',
   rpcToken: 'secret',
   rules: {
+    extensionsEnabled: true,
     extensions: [],
+    minSizeEnabled: true,
     minSizeMb: 0,
+    includedDomainsEnabled: false,
     includedDomains: [],
+    excludedDomainsEnabled: false,
     excludedDomains: []
   },
   requestContext: { sendCookies: true, sendReferer: true, sendUserAgent: true },
