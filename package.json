@@ -14,12 +14,12 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "latest",
-    "@vitejs/plugin-react": "latest",
-    "tailwindcss": "latest",
-    "webextension-polyfill": "latest",
     "@types/webextension-polyfill": "latest",
+    "@vitejs/plugin-react": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "tailwindcss": "latest",
+    "webextension-polyfill": "latest"
   },
   "devDependencies": {
     "@eslint/js": "latest",
@@ -29,6 +29,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "esbuild": "^0.28.0",
     "eslint": "latest",
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",

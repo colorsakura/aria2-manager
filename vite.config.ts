@@ -1,20 +1,38 @@
 import { resolve } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { build as buildWithEsbuild } from 'esbuild';
+import { defineConfig, type Plugin } from 'vite';
+
+const root = import.meta.dirname;
+
+function bundleBackground(): Plugin {
+  return {
+    name: 'bundle-background-iife',
+    apply: 'build',
+    closeBundle: async () => {
+      await buildWithEsbuild({
+        entryPoints: [resolve(root, 'src/background/main.ts')],
+        bundle: true,
+        outfile: resolve(root, 'dist/background.js'),
+        format: 'iife',
+        target: 'es2022'
+      });
+    }
+  };
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), bundleBackground()],
   build: {
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        popup: resolve(import.meta.dirname, 'popup.html'),
-        options: resolve(import.meta.dirname, 'options.html'),
-        background: resolve(import.meta.dirname, 'src/background/main.ts')
+        popup: resolve(root, 'popup.html'),
+        options: resolve(root, 'options.html')
       },
       output: {
-        entryFileNames: chunk => (chunk.name === 'background' ? 'background.js' : 'assets/[name]-[hash].js'),
+        entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]'
       }
