@@ -28,8 +28,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        popup: resolve(root, 'popup.html'),
-        options: resolve(root, 'options.html')
+        popup: resolve(root, 'src/popup/index.html'),
+        options: resolve(root, 'src/options/index.html')
       },
       output: {
         entryFileNames: 'assets/[name]-[hash].js',

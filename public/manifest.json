@@ -16,10 +16,10 @@
   },
   "browser_action": {
     "default_title": "Aria2 Manager",
-    "default_popup": "popup.html"
+    "default_popup": "src/popup/index.html"
   },
   "options_ui": {
-    "page": "options.html",
+    "page": "src/options/index.html",
     "browser_style": false,
     "open_in_tab": true
   },
