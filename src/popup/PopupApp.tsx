@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { sendRuntimeMessage } from '../shared/messages';
 import type {
@@ -13,15 +13,13 @@ interface PopupState {
   tasks: Aria2ActiveTask[];
 }
 
+const POPUP_REFRESH_INTERVAL_MS = 1000;
+
 export function PopupApp() {
   const [state, setState] = useState<PopupState | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void refresh();
-  }, []);
-
-  async function refresh() {
+  const refresh = useCallback(async () => {
     try {
       const response = await sendRuntimeMessage(
         { type: 'popup:getState' },
@@ -38,7 +36,18 @@ export function PopupApp() {
         caught instanceof Error ? caught.message : 'Failed to load popup state'
       );
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+    const refreshTimer = window.setInterval(() => {
+      void refresh();
+    }, POPUP_REFRESH_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(refreshTimer);
+    };
+  }, [refresh]);
 
   async function toggleEnabled(enabled: boolean) {
     if (!state) return;

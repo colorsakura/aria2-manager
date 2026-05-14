@@ -1,6 +1,7 @@
+import { act } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDefaultSettings } from '../shared/defaultSettings';
 import { sendRuntimeMessage } from '../shared/messages';
 import { PopupApp } from './PopupApp';
@@ -22,6 +23,10 @@ const mockedSend = vi.mocked(sendRuntimeMessage);
 describe('PopupApp', () => {
   beforeEach(() => {
     mockedSend.mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders enabled state, rpc status, latest result, and active task', async () => {
@@ -63,16 +68,59 @@ describe('PopupApp', () => {
     expect(screen.getByText('50%')).toBeInTheDocument();
   });
 
-  it('toggles interception', async () => {
-    const user = userEvent.setup();
+  it('refreshes popup state periodically', async () => {
+    vi.useFakeTimers();
     mockedSend
       .mockResolvedValueOnce({
         type: 'popupState',
         settings: createDefaultSettings(),
-        rpcStatus: { ok: false, message: 'offline' },
-        tasks: []
+        rpcStatus: { ok: true, version: '1.37.0' },
+        tasks: [
+          {
+            gid: '1',
+            name: 'file.zip',
+            status: 'active',
+            progress: 50,
+            downloadSpeed: 1024
+          }
+        ]
       })
-      .mockResolvedValueOnce({ type: 'ok' });
+      .mockResolvedValueOnce({
+        type: 'popupState',
+        settings: createDefaultSettings(),
+        rpcStatus: { ok: true, version: '1.37.0' },
+        tasks: [
+          {
+            gid: '1',
+            name: 'file.zip',
+            status: 'active',
+            progress: 75,
+            downloadSpeed: 2048
+          }
+        ]
+      });
+
+    render(<PopupApp />);
+
+    await act(async () => {});
+    expect(screen.getByText('50%')).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+
+    expect(screen.getByText('75%')).toBeInTheDocument();
+    expect(screen.getByText('active · 2.0 KB/s')).toBeInTheDocument();
+  });
+
+  it('toggles interception', async () => {
+    const user = userEvent.setup();
+    mockedSend.mockResolvedValue({
+      type: 'popupState',
+      settings: createDefaultSettings(),
+      rpcStatus: { ok: false, message: 'offline' },
+      tasks: []
+    });
 
     render(<PopupApp />);
 
