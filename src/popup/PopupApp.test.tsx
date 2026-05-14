@@ -56,16 +56,19 @@ describe('PopupApp', () => {
 
     render(<PopupApp />);
 
-    expect(await screen.findByText('Aria2 Manager')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Connected: aria2 1.37.0')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Enabled')).toBeInTheDocument();
     expect(
-      screen.getByRole('checkbox', { name: 'Enable interception' })
+      screen.getByRole('switch', { name: 'Enable interception' })
     ).toBeChecked();
-    expect(screen.getByText('Connected: aria2 1.37.0')).toBeInTheDocument();
-    expect(
-      screen.getByText('Last: file.zip sent to aria2')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Last: file.zip sent to aria2')).toBeInTheDocument();
     expect(screen.getByText('file.zip')).toBeInTheDocument();
     expect(screen.getByText('50%')).toBeInTheDocument();
+    expect(
+      screen.getByRole('progressbar', { name: 'file.zip progress' })
+    ).toHaveAttribute('aria-valuenow', '50');
   });
 
   it('refreshes popup state periodically', async () => {
@@ -125,7 +128,7 @@ describe('PopupApp', () => {
     render(<PopupApp />);
 
     await user.click(
-      await screen.findByRole('checkbox', { name: 'Enable interception' })
+      await screen.findByRole('switch', { name: 'Enable interception' })
     );
 
     await waitFor(() => {
@@ -149,7 +152,7 @@ describe('PopupApp', () => {
     render(<PopupApp />);
 
     await user.click(
-      await screen.findByRole('checkbox', { name: 'Extension rule' })
+      await screen.findByRole('switch', { name: 'Extension rule' })
     );
 
     await waitFor(() => {

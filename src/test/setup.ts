@@ -1,6 +1,14 @@
 import '@testing-library/jest-dom/vitest';
 import { vi } from 'vitest';
 
+// Mock ResizeObserver for Radix UI components
+class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+vi.stubGlobal('ResizeObserver', ResizeObserver);
+
 vi.mock('webextension-polyfill', () => ({
   default: {
     runtime: {

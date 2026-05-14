@@ -1,5 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { sendRuntimeMessage } from '../shared/messages';
 import type {
   Aria2ActiveTask,
@@ -9,16 +22,22 @@ import type {
 } from '../shared/types';
 
 interface PopupState {
-  settings: ExtensionSettings;
-  rpcStatus: RpcStatus;
-  tasks: Aria2ActiveTask[];
+  status: 'loading' | 'error' | 'ok';
+  settings: ExtensionSettings | null;
+  rpcStatus: RpcStatus | null;
+  tasks: Aria2ActiveTask[] | null;
+  errorMessage?: string;
 }
 
 const POPUP_REFRESH_INTERVAL_MS = 1000;
 
 export function PopupApp() {
-  const [state, setState] = useState<PopupState | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<PopupState>({
+    status: 'loading',
+    settings: null,
+    rpcStatus: null,
+    tasks: null
+  });
 
   const refresh = useCallback(async () => {
     try {
@@ -27,15 +46,20 @@ export function PopupApp() {
         'popupState'
       );
       setState({
+        status: 'ok',
         settings: response.settings,
         rpcStatus: response.rpcStatus,
         tasks: response.tasks
       });
-      setError(null);
     } catch (caught) {
-      setError(
-        caught instanceof Error ? caught.message : 'Failed to load popup state'
-      );
+      setState({
+        status: 'error',
+        settings: null,
+        rpcStatus: null,
+        tasks: null,
+        errorMessage:
+          caught instanceof Error ? caught.message : 'Failed to load popup state'
+      });
     }
   }, []);
 
@@ -51,158 +75,198 @@ export function PopupApp() {
   }, [refresh]);
 
   async function toggleEnabled(enabled: boolean) {
-    if (!state) return;
-    setState({ ...state, settings: { ...state.settings, enabled } });
+    if (!state.settings) return;
+    setState({
+      ...state,
+      settings: { ...state.settings, enabled }
+    });
     await sendRuntimeMessage({ type: 'settings:setEnabled', enabled }, 'ok');
   }
 
   async function updateRules(rules: RuleSettings) {
-    if (!state) return;
-    const settings = { ...state.settings, rules };
-    setState({ ...state, settings });
-    await sendRuntimeMessage({ type: 'settings:save', settings }, 'ok');
+    if (!state.settings) return;
+    const newSettings = { ...state.settings, rules };
+    setState({ ...state, settings: newSettings });
+    await sendRuntimeMessage({ type: 'settings:save', settings: newSettings }, 'ok');
   }
 
-  if (error) {
-    return <main className="w-96 p-4 text-sm text-red-700">{error}</main>;
+  if (state.status === 'loading') {
+    return (
+      <main className="w-96 bg-background p-3 text-foreground">
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-base">Aria2 Manager</CardTitle>
+            <CardDescription>Loading popup state...</CardDescription>
+          </CardHeader>
+        </Card>
+      </main>
+    );
   }
 
-  if (!state) {
-    return <main className="w-96 p-4 text-sm text-slate-600">Loading...</main>;
+  if (state.status === 'error') {
+    return (
+      <main className="w-96 bg-background p-3 text-foreground">
+        <Card className="border-destructive/40">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-base">Aria2 Manager</CardTitle>
+            <CardDescription className="text-destructive">
+              {state.errorMessage}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </main>
+    );
+  }
+
+  // From here, state.status === 'ok'
+  const { settings, rpcStatus, tasks } = state;
+  if (!settings || !rpcStatus || !tasks) {
+    // Should be unreachable if status is 'ok'
+    return null;
   }
 
   return (
-    <main className="w-96 space-y-4 bg-slate-50 p-4 text-sm text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Aria2 Manager</h1>
-          <span
-            aria-label={
-              state.rpcStatus.ok ? 'RPC connected' : 'RPC disconnected'
-            }
-            className={
-              state.rpcStatus.ok
-                ? 'size-2.5 rounded-full bg-emerald-500'
-                : 'size-2.5 rounded-full bg-red-500'
-            }
-            title={state.rpcStatus.ok ? 'RPC connected' : 'RPC disconnected'}
-          />
-        </div>
-        <span
-          className={
-            state.settings.enabled ? 'text-emerald-600' : 'text-slate-500'
-          }
-        >
-          {state.settings.enabled ? 'Enabled' : 'Paused'}
-        </span>
-      </header>
-
-      <label className="flex items-center gap-2 rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <input
-          aria-label="Enable interception"
-          type="checkbox"
-          checked={state.settings.enabled}
-          onChange={(event) => void toggleEnabled(event.currentTarget.checked)}
-        />
-        <span>Enable interception</span>
-      </label>
-
-      <section className="space-y-2 rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="font-medium">Interception rules</h2>
-        <RuleToggle
-          label="Extension rule"
-          checked={state.settings.rules.extensionsEnabled}
-          onChange={(extensionsEnabled) =>
-            void updateRules({ ...state.settings.rules, extensionsEnabled })
-          }
-        />
-        <RuleToggle
-          label="Minimum size rule"
-          checked={state.settings.rules.minSizeEnabled}
-          onChange={(minSizeEnabled) =>
-            void updateRules({ ...state.settings.rules, minSizeEnabled })
-          }
-        />
-        <RuleToggle
-          label="Included domains rule"
-          checked={state.settings.rules.includedDomainsEnabled}
-          onChange={(includedDomainsEnabled) =>
-            void updateRules({
-              ...state.settings.rules,
-              includedDomainsEnabled
-            })
-          }
-        />
-        <RuleToggle
-          label="Excluded domains rule"
-          checked={state.settings.rules.excludedDomainsEnabled}
-          onChange={(excludedDomainsEnabled) =>
-            void updateRules({
-              ...state.settings.rules,
-              excludedDomainsEnabled
-            })
-          }
-        />
-      </section>
-
-      <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="mb-2 font-medium">Latest result</h2>
-        <p>{formatLastResult(state.settings)}</p>
-      </section>
-
-      <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="mb-2 font-medium">Active tasks</h2>
-        {state.tasks.length === 0 ? (
-          <p className="text-slate-500">No active tasks</p>
-        ) : (
-          <ul className="space-y-2">
-            {state.tasks.map((task) => (
-              <li
-                key={task.gid}
-                className="rounded border border-slate-200 p-2 dark:border-slate-700"
+    <main className="w-96 space-y-3 bg-background p-3 text-sm text-foreground">
+      <Card>
+        <CardHeader className="space-y-3 pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-2">
+              <CardTitle className="text-lg leading-none">Aria2 Manager</CardTitle>
+              <div className="flex flex-wrap gap-1.5">
+                <RpcStatusBadge status={rpcStatus} />
+                <Badge variant={settings.enabled ? 'default' : 'secondary'}>
+                  {settings.enabled ? 'Enabled' : 'Paused'}
+                </Badge>
+              </div>
+            </div>
+            <Button
+              aria-label="Settings"
+              size="icon"
+              variant="outline"
+              onClick={() => {
+                void browser.runtime.openOptionsPage();
+              }}
+            >
+              <svg
+                aria-hidden="true"
+                className="size-4"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
               >
-                <div className="flex justify-between gap-2">
-                  <span className="truncate font-medium">{task.name}</span>
-                  <span>{task.progress}%</span>
-                </div>
-                <div className="text-xs text-slate-500">
-                  {task.status} · {formatSpeed(task.downloadSpeed)}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" />
+                <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .92l-.03.08a2 2 0 0 1-3.86 0l-.03-.08A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.92-1l-.08-.03a2 2 0 0 1 0-3.86l.08-.03A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.92l.03-.08a2 2 0 0 1 3.86 0l.03.08A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06A2 2 0 1 1 22.63 7l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .92 1l.08.03a2 2 0 0 1 0 3.86l-.08.03a1.7 1.7 0 0 0-.92 1Z" />
+              </svg>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SwitchRow
+            label="Enable interception"
+            checked={settings.enabled}
+            onChange={(enabled) => void toggleEnabled(enabled)}
+          />
+        </CardContent>
+      </Card>
 
-      <div className="flex justify-end">
-        <button
-          aria-label="Settings"
-          className="inline-flex size-9 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-          title="Settings"
-          onClick={() => {
-            void browser.runtime.openOptionsPage();
-          }}
-        >
-          <svg
-            aria-hidden="true"
-            className="size-5"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" />
-            <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .92l-.03.08a2 2 0 0 1-3.86 0l-.03-.08A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.92-1l-.08-.03a2 2 0 0 1 0-3.86l.08-.03A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.92l.03-.08a2 2 0 0 1 3.86 0l.03.08A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .92 1l.08.03a2 2 0 0 1 0 3.86l-.08.03a1.7 1.7 0 0 0-.92 1Z" />
-          </svg>
-        </button>
-      </div>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Interception rules</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <SwitchRow
+            label="Extension rule"
+            checked={settings.rules.extensionsEnabled}
+            onChange={(extensionsEnabled) =>
+              void updateRules({ ...settings.rules, extensionsEnabled })
+            }
+          />
+          <SwitchRow
+            label="Minimum size rule"
+            checked={settings.rules.minSizeEnabled}
+            onChange={(minSizeEnabled) =>
+              void updateRules({ ...settings.rules, minSizeEnabled })
+            }
+          />
+          <SwitchRow
+            label="Included domains rule"
+            checked={settings.rules.includedDomainsEnabled}
+            onChange={(includedDomainsEnabled) =>
+              void updateRules({
+                ...settings.rules,
+                includedDomainsEnabled
+              })
+            }
+          />
+          <SwitchRow
+            label="Excluded domains rule"
+            checked={settings.rules.excludedDomainsEnabled}
+            onChange={(excludedDomainsEnabled) =>
+              void updateRules({
+                ...settings.rules,
+                excludedDomainsEnabled
+              })
+            }
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Latest result</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">{formatLastResult(settings)}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Active tasks</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tasks.length === 0 ? (
+            <p className="text-muted-foreground">No active tasks</p>
+          ) : (
+            <ul className="space-y-3">
+              {tasks.map((task, index) => (
+                <li key={task.gid} className="space-y-2">
+                  {index > 0 ? <Separator /> : null}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="truncate font-medium">{task.name}</span>
+                      <span className="text-muted-foreground">{task.progress}%</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {task.status} · {formatSpeed(task.downloadSpeed)}
+                    </div>
+                    <Progress
+                      aria-label={`${task.name} progress`}
+                      value={task.progress}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </main>
   );
 }
 
-function RuleToggle({
+function RpcStatusBadge({ status }: { status: RpcStatus }) {
+  if (status.ok) {
+    return <Badge>Connected: aria2 {status.version}</Badge>;
+  }
+
+  return <Badge variant="destructive">Disconnected: {status.message}</Badge>;
+}
+
+function SwitchRow({
   label,
   checked,
   onChange
@@ -211,16 +275,15 @@ function RuleToggle({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const id = label.toLowerCase().replaceAll(' ', '-');
+
   return (
-    <label className="flex items-center justify-between gap-3 text-slate-700 dark:text-slate-300">
-      <span>{label}</span>
-      <input
-        aria-label={label}
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.currentTarget.checked)}
-      />
-    </label>
+    <div className="flex items-center justify-between gap-3">
+      <Label htmlFor={id} className="text-sm font-normal">
+        {label}
+      </Label>
+      <Switch id={id} checked={checked} onCheckedChange={onChange} />
+    </div>
   );
 }
 
