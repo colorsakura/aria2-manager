@@ -24,6 +24,11 @@ function bundleBackground(): Plugin {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), bundleBackground()],
+  resolve: {
+    alias: {
+      '@': resolve(root, 'src')
+    }
+  },
   build: {
     emptyOutDir: true,
     rollupOptions: {
