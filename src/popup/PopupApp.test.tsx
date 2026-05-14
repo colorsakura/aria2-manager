@@ -135,4 +135,34 @@ describe('PopupApp', () => {
       );
     });
   });
+
+  it('toggles interception rules from popup', async () => {
+    const user = userEvent.setup();
+    const settings = createDefaultSettings();
+    mockedSend.mockResolvedValue({
+      type: 'popupState',
+      settings,
+      rpcStatus: { ok: false, message: 'offline' },
+      tasks: []
+    });
+
+    render(<PopupApp />);
+
+    await user.click(
+      await screen.findByRole('checkbox', { name: 'Extension rule' })
+    );
+
+    await waitFor(() => {
+      expect(mockedSend).toHaveBeenCalledWith(
+        {
+          type: 'settings:save',
+          settings: {
+            ...settings,
+            rules: { ...settings.rules, extensionsEnabled: false }
+          }
+        },
+        'ok'
+      );
+    });
+  });
 });

@@ -4,7 +4,8 @@ import { sendRuntimeMessage } from '../shared/messages';
 import type {
   Aria2ActiveTask,
   ExtensionSettings,
-  RpcStatus
+  RpcStatus,
+  RuleSettings
 } from '../shared/types';
 
 interface PopupState {
@@ -55,6 +56,13 @@ export function PopupApp() {
     await sendRuntimeMessage({ type: 'settings:setEnabled', enabled }, 'ok');
   }
 
+  async function updateRules(rules: RuleSettings) {
+    if (!state) return;
+    const settings = { ...state.settings, rules };
+    setState({ ...state, settings });
+    await sendRuntimeMessage({ type: 'settings:save', settings }, 'ok');
+  }
+
   if (error) {
     return <main className="w-96 p-4 text-sm text-red-700">{error}</main>;
   }
@@ -85,6 +93,44 @@ export function PopupApp() {
         />
         <span>Enable interception</span>
       </label>
+
+      <section className="space-y-2 rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
+        <h2 className="font-medium">Interception rules</h2>
+        <RuleToggle
+          label="Extension rule"
+          checked={state.settings.rules.extensionsEnabled}
+          onChange={(extensionsEnabled) =>
+            void updateRules({ ...state.settings.rules, extensionsEnabled })
+          }
+        />
+        <RuleToggle
+          label="Minimum size rule"
+          checked={state.settings.rules.minSizeEnabled}
+          onChange={(minSizeEnabled) =>
+            void updateRules({ ...state.settings.rules, minSizeEnabled })
+          }
+        />
+        <RuleToggle
+          label="Included domains rule"
+          checked={state.settings.rules.includedDomainsEnabled}
+          onChange={(includedDomainsEnabled) =>
+            void updateRules({
+              ...state.settings.rules,
+              includedDomainsEnabled
+            })
+          }
+        />
+        <RuleToggle
+          label="Excluded domains rule"
+          checked={state.settings.rules.excludedDomainsEnabled}
+          onChange={(excludedDomainsEnabled) =>
+            void updateRules({
+              ...state.settings.rules,
+              excludedDomainsEnabled
+            })
+          }
+        />
+      </section>
 
       <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
         <div className="flex items-center justify-between gap-2">
@@ -156,6 +202,28 @@ export function PopupApp() {
         </button>
       </div>
     </main>
+  );
+}
+
+function RuleToggle({
+  label,
+  checked,
+  onChange
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-3 text-slate-700 dark:text-slate-300">
+      <span>{label}</span>
+      <input
+        aria-label={label}
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.currentTarget.checked)}
+      />
+    </label>
   );
 }
 
