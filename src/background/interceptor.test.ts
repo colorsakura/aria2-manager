@@ -23,6 +23,7 @@ function deps(
   return {
     loadSettings: vi.fn(async () => settings),
     cancelDownload: vi.fn(async () => undefined),
+    eraseDownload: vi.fn(async () => undefined),
     collectRequestContext: vi.fn(
       async () =>
         ({ referer: 'https://example.com/page' }) as RequestContextHeaders
@@ -50,6 +51,7 @@ describe('handleDownloadCreated', () => {
     await handleDownloadCreated(download, dependencyBag);
 
     expect(dependencyBag.cancelDownload).not.toHaveBeenCalled();
+    expect(dependencyBag.eraseDownload).not.toHaveBeenCalled();
     expect(dependencyBag.addUri).not.toHaveBeenCalled();
   });
 
@@ -62,6 +64,7 @@ describe('handleDownloadCreated', () => {
     await handleDownloadCreated(download, dependencyBag);
 
     expect(dependencyBag.cancelDownload).not.toHaveBeenCalled();
+    expect(dependencyBag.eraseDownload).not.toHaveBeenCalled();
     expect(dependencyBag.addUri).not.toHaveBeenCalled();
   });
 
@@ -71,6 +74,7 @@ describe('handleDownloadCreated', () => {
     await handleDownloadCreated(download, dependencyBag);
 
     expect(dependencyBag.cancelDownload).toHaveBeenCalledWith(42);
+    expect(dependencyBag.eraseDownload).toHaveBeenCalledWith(42);
     expect(dependencyBag.collectRequestContext).toHaveBeenCalledWith(
       'https://example.com/file.zip',
       createDefaultSettings().requestContext
@@ -99,6 +103,7 @@ describe('handleDownloadCreated', () => {
     await handleDownloadCreated(download, dependencyBag);
 
     expect(dependencyBag.cancelDownload).toHaveBeenCalledWith(42);
+    expect(dependencyBag.eraseDownload).toHaveBeenCalledWith(42);
     expect(dependencyBag.saveLastResult).toHaveBeenCalledWith({
       status: 'failure',
       url: 'https://example.com/file.zip',

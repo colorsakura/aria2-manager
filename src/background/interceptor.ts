@@ -12,6 +12,7 @@ import type {
 interface InterceptorDependencies {
   loadSettings: () => Promise<ExtensionSettings>;
   cancelDownload: (id: number) => Promise<void>;
+  eraseDownload: (id: number) => Promise<void>;
   collectRequestContext: (
     url: string,
     settings: RequestContextSettings
@@ -42,6 +43,7 @@ export async function handleDownloadCreated(
   }
 
   await dependencies.cancelDownload(download.id);
+  await dependencies.eraseDownload(download.id);
 
   try {
     const headers = await dependencies.collectRequestContext(
@@ -77,6 +79,7 @@ export async function handleDownloadCreated(
 
 export function createDefaultInterceptorDependencies(
   cancelDownload: (id: number) => Promise<void>,
+  eraseDownload: (id: number) => Promise<void>,
   collectRequestContext: (
     url: string,
     settings: RequestContextSettings
@@ -86,6 +89,7 @@ export function createDefaultInterceptorDependencies(
   return {
     loadSettings,
     cancelDownload,
+    eraseDownload,
     collectRequestContext,
     addUri: defaultAddUri,
     saveLastResult: async (result) => {

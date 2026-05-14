@@ -47,6 +47,9 @@ browser.downloads.onCreated.addListener((downloadItem) => {
     download,
     createDefaultInterceptorDependencies(
       (id) => browser.downloads.cancel(id),
+      async (id) => {
+        await browser.downloads.erase({ id });
+      },
       (url, settings) => requestContextTracker.collect(url, settings),
       notify
     )
