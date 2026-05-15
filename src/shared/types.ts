@@ -37,6 +37,7 @@ export interface ExtensionSettings {
   rpcToken: string;
   rules: RuleSettings;
   requestContext: RequestContextSettings;
+  language?: string;
   lastResult: LastResult | null;
 }
 

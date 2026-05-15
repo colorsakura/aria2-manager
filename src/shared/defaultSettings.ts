@@ -20,6 +20,7 @@ export function createDefaultSettings(): ExtensionSettings {
       sendReferer: true,
       sendUserAgent: true
     },
-    lastResult: null
+    lastResult: null,
+    language: undefined
   };
 }

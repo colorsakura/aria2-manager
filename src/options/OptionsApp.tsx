@@ -1,8 +1,10 @@
 import { type FormEvent, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { sendRuntimeMessage } from '../shared/messages';
 import type { ExtensionSettings, RpcStatus } from '../shared/types';
 
 export function OptionsApp() {
+  const { t, i18n } = useTranslation();
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [status, setStatus] = useState<RpcStatus | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -14,10 +16,13 @@ export function OptionsApp() {
         'settings'
       );
       setSettings(response.settings);
+      if (response.settings.language) {
+        await i18n.changeLanguage(response.settings.language);
+      }
     }
 
     void load();
-  }, []);
+  }, [i18n]);
 
   async function save(event: FormEvent) {
     event.preventDefault();
@@ -26,7 +31,10 @@ export function OptionsApp() {
       { type: 'settings:save', settings: normalizeSettings(settings) },
       'ok'
     );
-    setMessage('Settings saved');
+    if (settings.language) {
+      await i18n.changeLanguage(settings.language);
+    }
+    setMessage(t('Settings saved'));
   }
 
   async function testConnection() {
@@ -44,7 +52,9 @@ export function OptionsApp() {
 
   if (!settings) {
     return (
-      <main className="p-6 text-sm text-slate-600">Loading settings...</main>
+      <main className="p-6 text-sm text-slate-600">
+        {t('Loading settings...')}
+      </main>
     );
   }
 
@@ -55,20 +65,43 @@ export function OptionsApp() {
         onSubmit={(event) => void save(event)}
       >
         <header>
-          <h1 className="text-2xl font-semibold">Aria2 Manager Settings</h1>
+          <h1 className="text-2xl font-semibold">
+            {t('Aria2 Manager Settings')}
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Configure local aria2 RPC, interception rules, and request context
-            forwarding.
+            {t(
+              'Configure local aria2 RPC, interception rules, and request context forwarding.'
+            )}
           </p>
         </header>
 
         <section className="space-y-4 rounded-xl bg-white p-5 shadow-sm dark:bg-slate-900">
-          <h2 className="text-lg font-medium">RPC settings</h2>
+          <h2 className="text-lg font-medium">{t('General')}</h2>
           <label className="block space-y-1">
-            <span>RPC URL</span>
+            <span>{t('Language')}</span>
+            <select
+              className="w-full rounded border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700"
+              value={settings.language ?? 'en'}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  language: event.currentTarget.value
+                })
+              }
+            >
+              <option value="en">{t('English')}</option>
+              <option value="zh">{t('Chinese')}</option>
+            </select>
+          </label>
+        </section>
+
+        <section className="space-y-4 rounded-xl bg-white p-5 shadow-sm dark:bg-slate-900">
+          <h2 className="text-lg font-medium">{t('RPC settings')}</h2>
+          <label className="block space-y-1">
+            <span>{t('RPC URL')}</span>
             <input
               className="w-full rounded border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700"
-              aria-label="RPC URL"
+              aria-label={t('RPC URL')}
               value={settings.rpcUrl}
               onChange={(event) =>
                 setSettings({ ...settings, rpcUrl: event.currentTarget.value })
@@ -76,10 +109,10 @@ export function OptionsApp() {
             />
           </label>
           <label className="block space-y-1">
-            <span>RPC token</span>
+            <span>{t('RPC token')}</span>
             <input
               className="w-full rounded border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700"
-              aria-label="RPC token"
+              aria-label={t('RPC token')}
               type="password"
               value={settings.rpcToken}
               onChange={(event) =>
@@ -95,19 +128,23 @@ export function OptionsApp() {
             className="rounded bg-slate-900 px-4 py-2 text-white dark:bg-slate-100 dark:text-slate-900"
             onClick={() => void testConnection()}
           >
-            Test connection
+            {t('Test connection')}
           </button>
           {status ? (
             <p>
               {status.ok
-                ? `Connected: aria2 ${status.version}`
-                : `Disconnected: ${status.message}`}
+                ? t('Connected: aria2 {{version}}', {
+                    version: status.version
+                  })
+                : t('Disconnected: {{message}}', {
+                    message: status.message
+                  })}
             </p>
           ) : null}
         </section>
 
         <section className="space-y-4 rounded-xl bg-white p-5 shadow-sm dark:bg-slate-900">
-          <h2 className="text-lg font-medium">Rules</h2>
+          <h2 className="text-lg font-medium">{t('Rules')}</h2>
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -119,7 +156,7 @@ export function OptionsApp() {
                 })
               }
             />
-            <span>Enable interception</span>
+            <span>{t('Enable interception')}</span>
           </label>
           <Toggle
             label="Enable extension rule"
@@ -152,10 +189,10 @@ export function OptionsApp() {
             }
           />
           <label className="block space-y-1">
-            <span>Minimum size MB</span>
+            <span>{t('Minimum size MB')}</span>
             <input
               className="w-full rounded border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700"
-              aria-label="Minimum size MB"
+              aria-label={t('Minimum size MB')}
               type="number"
               min="0"
               value={settings.rules.minSizeMb}
@@ -182,7 +219,7 @@ export function OptionsApp() {
           />
           <TextAreaField
             label="Included domains"
-            value={settings.rules.includedDomains.join('\n')}
+            value={settings.rules.includedDomains.join('\\n')}
             onChange={(value) =>
               setSettings({
                 ...settings,
@@ -202,7 +239,7 @@ export function OptionsApp() {
           />
           <TextAreaField
             label="Excluded domains"
-            value={settings.rules.excludedDomains.join('\n')}
+            value={settings.rules.excludedDomains.join('\\n')}
             onChange={(value) =>
               setSettings({
                 ...settings,
@@ -213,10 +250,13 @@ export function OptionsApp() {
         </section>
 
         <section className="space-y-4 rounded-xl bg-white p-5 shadow-sm dark:bg-slate-900">
-          <h2 className="text-lg font-medium">Request context and privacy</h2>
+          <h2 className="text-lg font-medium">
+            {t('Request context and privacy')}
+          </h2>
           <p className="text-sm text-slate-500">
-            Enabled values are sent only to your configured aria2 instance for
-            downloads that match your rules.
+            {t(
+              'Enabled values are sent only to your configured aria2 instance for downloads that match your rules.'
+            )}
           </p>
           <Toggle
             label="Send cookies"
@@ -255,7 +295,7 @@ export function OptionsApp() {
             className="rounded bg-blue-600 px-4 py-2 text-white"
             type="submit"
           >
-            Save settings
+            {t('Save settings')}
           </button>
           {message ? (
             <span className="text-sm text-emerald-600">{message}</span>
@@ -275,12 +315,13 @@ function TextAreaField({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <label className="block space-y-1">
-      <span>{label}</span>
+      <span>{t(label)}</span>
       <textarea
         className="min-h-20 w-full rounded border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700"
-        aria-label={label}
+        aria-label={t(label)}
         value={value}
         onChange={(event) => onChange(event.currentTarget.value)}
       />
@@ -297,6 +338,7 @@ function Toggle({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <label className="flex items-center gap-2">
       <input
@@ -304,14 +346,14 @@ function Toggle({
         checked={checked}
         onChange={(event) => onChange(event.currentTarget.checked)}
       />
-      <span>{label}</span>
+      <span>{t(label)}</span>
     </label>
   );
 }
 
 function splitList(value: string): string[] {
   return value
-    .split(/[\n,]/)
+    .split(/[\\n,]/)
     .map((item) => item.trim())
     .filter(Boolean);
 }

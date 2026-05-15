@@ -1,3 +1,5 @@
+import { type TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
 import { sendRuntimeMessage } from '../shared/messages';
@@ -17,6 +19,7 @@ interface PopupState {
 const POPUP_REFRESH_INTERVAL_MS = 1000;
 
 export function PopupApp() {
+  const { t, i18n } = useTranslation();
   const [state, setState] = useState<PopupState | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +29,9 @@ export function PopupApp() {
         { type: 'popup:getState' },
         'popupState'
       );
+      if (response.settings.language) {
+        await i18n.changeLanguage(response.settings.language);
+      }
       setState({
         settings: response.settings,
         rpcStatus: response.rpcStatus,
@@ -34,10 +40,12 @@ export function PopupApp() {
       setError(null);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : 'Failed to load popup state'
+        caught instanceof Error
+          ? caught.message
+          : t('Failed to load popup state')
       );
     }
-  }, []);
+  }, [i18n, t]);
 
   useEffect(() => {
     void refresh();
@@ -68,24 +76,28 @@ export function PopupApp() {
   }
 
   if (!state) {
-    return <main className="w-96 p-4 text-sm text-slate-600">Loading...</main>;
+    return (
+      <main className="w-96 p-4 text-sm text-slate-600">{t('Loading...')}</main>
+    );
   }
 
   return (
     <main className="w-96 space-y-4 bg-slate-50 p-4 text-sm text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Aria2 Manager</h1>
+          <h1 className="text-lg font-semibold">{t('Aria2 Manager')}</h1>
           <span
             aria-label={
-              state.rpcStatus.ok ? 'RPC connected' : 'RPC disconnected'
+              state.rpcStatus.ok ? t('RPC connected') : t('RPC disconnected')
             }
             className={
               state.rpcStatus.ok
                 ? 'size-2.5 rounded-full bg-emerald-500'
                 : 'size-2.5 rounded-full bg-red-500'
             }
-            title={state.rpcStatus.ok ? 'RPC connected' : 'RPC disconnected'}
+            title={
+              state.rpcStatus.ok ? t('RPC connected') : t('RPC disconnected')
+            }
           />
         </div>
         <span
@@ -93,22 +105,22 @@ export function PopupApp() {
             state.settings.enabled ? 'text-emerald-600' : 'text-slate-500'
           }
         >
-          {state.settings.enabled ? 'Enabled' : 'Paused'}
+          {state.settings.enabled ? t('Enabled') : t('Paused')}
         </span>
       </header>
 
       <label className="flex items-center gap-2 rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
         <input
-          aria-label="Enable interception"
+          aria-label={t('Enable interception')}
           type="checkbox"
           checked={state.settings.enabled}
           onChange={(event) => void toggleEnabled(event.currentTarget.checked)}
         />
-        <span>Enable interception</span>
+        <span>{t('Enable interception')}</span>
       </label>
 
       <section className="space-y-2 rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="font-medium">Interception rules</h2>
+        <h2 className="font-medium">{t('Interception rules')}</h2>
         <RuleToggle
           label="Extension rule"
           checked={state.settings.rules.extensionsEnabled}
@@ -146,14 +158,14 @@ export function PopupApp() {
       </section>
 
       <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="mb-2 font-medium">Latest result</h2>
-        <p>{formatLastResult(state.settings)}</p>
+        <h2 className="mb-2 font-medium">{t('Latest result')}</h2>
+        <p>{formatLastResult(state.settings, t)}</p>
       </section>
 
       <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="mb-2 font-medium">Active tasks</h2>
+        <h2 className="mb-2 font-medium">{t('Active tasks')}</h2>
         {state.tasks.length === 0 ? (
-          <p className="text-slate-500">No active tasks</p>
+          <p className="text-slate-500">{t('No active tasks')}</p>
         ) : (
           <ul className="space-y-2">
             {state.tasks.map((task) => (
@@ -176,9 +188,9 @@ export function PopupApp() {
 
       <div className="flex justify-end">
         <button
-          aria-label="Settings"
+          aria-label={t('Settings')}
           className="inline-flex size-9 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-          title="Settings"
+          title={t('Settings')}
           onClick={() => {
             void browser.runtime.openOptionsPage();
           }}
@@ -211,11 +223,12 @@ function RuleToggle({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <label className="flex items-center justify-between gap-3 text-slate-700 dark:text-slate-300">
-      <span>{label}</span>
+      <span>{t(label)}</span>
       <input
-        aria-label={label}
+        aria-label={t(label)}
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.currentTarget.checked)}
@@ -224,18 +237,21 @@ function RuleToggle({
   );
 }
 
-function formatLastResult(settings: ExtensionSettings): string {
+function formatLastResult(settings: ExtensionSettings, t: TFunction): string {
   const result = settings.lastResult;
   if (!result) {
-    return 'No intercepted downloads yet';
+    return t('No intercepted downloads yet');
   }
 
   const label = result.filename ?? result.url;
   if (result.status === 'success') {
-    return `Last: ${label} sent to aria2`;
+    return t('Last: {{label}} sent to aria2', { label });
   }
 
-  return `Last failed: ${label} — ${result.message}`;
+  return t('Last failed: {{label}} — {{message}}', {
+    label,
+    message: result.message
+  });
 }
 
 function formatSpeed(bytesPerSecond: number): string {
