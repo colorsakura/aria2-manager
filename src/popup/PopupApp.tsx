@@ -2,6 +2,7 @@ import { type TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState } from 'react';
 import browser from 'webextension-polyfill';
+import { Button, Card, Label, Switch } from '@heroui/react';
 import { sendRuntimeMessage } from '../shared/messages';
 import type {
   Aria2ActiveTask,
@@ -82,10 +83,12 @@ export function PopupApp() {
   }
 
   return (
-    <main className="w-96 space-y-4 bg-slate-50 p-4 text-sm text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="flex items-center justify-between">
+    <Card className="w-96 space-y-4 p-4 text-sm">
+      <Card.Header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t('Aria2 Manager')}</h1>
+          <Card.Title className="text-lg font-semibold">
+            {t('Aria2 Manager')}
+          </Card.Title>
           <span
             aria-label={
               state.rpcStatus.ok ? t('RPC connected') : t('RPC disconnected')
@@ -107,91 +110,134 @@ export function PopupApp() {
         >
           {state.settings.enabled ? t('Enabled') : t('Paused')}
         </span>
-      </header>
+      </Card.Header>
 
-      <label className="flex items-center gap-2 rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <input
-          aria-label={t('Enable interception')}
-          type="checkbox"
-          checked={state.settings.enabled}
-          onChange={(event) => void toggleEnabled(event.currentTarget.checked)}
-        />
-        <span>{t('Enable interception')}</span>
-      </label>
+      <Switch
+        isSelected={state.settings.enabled}
+        onChange={(v) => toggleEnabled(v)}
+      >
+        <Switch.Content>
+          <Label>{t('Enable interception')}</Label>
+        </Switch.Content>
+        <Switch.Control>
+          <Switch.Thumb />
+        </Switch.Control>
+      </Switch>
 
-      <section className="space-y-2 rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="font-medium">{t('Interception rules')}</h2>
-        <RuleToggle
-          label="Extension rule"
-          checked={state.settings.rules.extensionsEnabled}
-          onChange={(extensionsEnabled) =>
-            void updateRules({ ...state.settings.rules, extensionsEnabled })
-          }
-        />
-        <RuleToggle
-          label="Minimum size rule"
-          checked={state.settings.rules.minSizeEnabled}
-          onChange={(minSizeEnabled) =>
-            void updateRules({ ...state.settings.rules, minSizeEnabled })
-          }
-        />
-        <RuleToggle
-          label="Included domains rule"
-          checked={state.settings.rules.includedDomainsEnabled}
-          onChange={(includedDomainsEnabled) =>
-            void updateRules({
-              ...state.settings.rules,
-              includedDomainsEnabled
-            })
-          }
-        />
-        <RuleToggle
-          label="Excluded domains rule"
-          checked={state.settings.rules.excludedDomainsEnabled}
-          onChange={(excludedDomainsEnabled) =>
-            void updateRules({
-              ...state.settings.rules,
-              excludedDomainsEnabled
-            })
-          }
-        />
-      </section>
+      <Card>
+        <Card.Header>
+          <Card.Title className="font-medium">
+            {t('Interception rules')}
+          </Card.Title>
+        </Card.Header>
+        <Card.Content className="flex flex-col">
+          <Switch
+            isSelected={state.settings.rules.extensionsEnabled}
+            onChange={(extensionsEnabled) =>
+              updateRules({ ...state.settings.rules, extensionsEnabled })
+            }
+          >
+            <Switch.Content>
+              <Label>{t('Extension rule')}</Label>
+            </Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
+          <Switch
+            isSelected={state.settings.rules.minSizeEnabled}
+            onChange={(minSizeEnabled) =>
+              updateRules({ ...state.settings.rules, minSizeEnabled })
+            }
+          >
+            <Switch.Content>
+              <Label>{t('Minimum size rule')}</Label>
+            </Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
+          <Switch
+            isSelected={state.settings.rules.includedDomainsEnabled}
+            onChange={(includedDomainsEnabled) =>
+              updateRules({
+                ...state.settings.rules,
+                includedDomainsEnabled
+              })
+            }
+          >
+            <Switch.Content>
+              <Label>{t('Included domains rule')}</Label>
+            </Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
+          <Switch
+            isSelected={state.settings.rules.excludedDomainsEnabled}
+            onChange={(excludedDomainsEnabled) =>
+              updateRules({
+                ...state.settings.rules,
+                excludedDomainsEnabled
+              })
+            }
+          >
+            <Switch.Content>
+              <Label>{t('Excluded domains rule')}</Label>
+            </Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
+        </Card.Content>
+      </Card>
 
-      <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="mb-2 font-medium">{t('Latest result')}</h2>
-        <p>{formatLastResult(state.settings, t)}</p>
-      </section>
+      <Card>
+        <Card.Header>
+          <Card.Title className="mb-2 font-medium">
+            {t('Latest result')}
+          </Card.Title>
+        </Card.Header>
+        <Card.Content>
+          <p>{formatLastResult(state.settings, t)}</p>
+        </Card.Content>
+      </Card>
 
-      <section className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
-        <h2 className="mb-2 font-medium">{t('Active tasks')}</h2>
-        {state.tasks.length === 0 ? (
-          <p className="text-slate-500">{t('No active tasks')}</p>
-        ) : (
-          <ul className="space-y-2">
-            {state.tasks.map((task) => (
-              <li
-                key={task.gid}
-                className="rounded border border-slate-200 p-2 dark:border-slate-700"
-              >
-                <div className="flex justify-between gap-2">
-                  <span className="truncate font-medium">{task.name}</span>
-                  <span>{task.progress}%</span>
-                </div>
-                <div className="text-xs text-slate-500">
-                  {task.status} · {formatSpeed(task.downloadSpeed)}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <Card>
+        <Card.Header>
+          <Card.Title className="mb-2 font-medium">
+            {t('Active tasks')}
+          </Card.Title>
+        </Card.Header>
+        <Card.Content>
+          {state.tasks.length === 0 ? (
+            <p className="text-slate-500">{t('No active tasks')}</p>
+          ) : (
+            <ul className="space-y-2">
+              {state.tasks.map((task) => (
+                <li
+                  key={task.gid}
+                  className="rounded border border-slate-200 p-2 dark:border-slate-700"
+                >
+                  <div className="flex justify-between gap-2">
+                    <span className="truncate font-medium">{task.name}</span>
+                    <span>{task.progress}%</span>
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {task.status} · {formatSpeed(task.downloadSpeed)}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card.Content>
+      </Card>
 
       <div className="flex justify-end">
-        <button
+        <Button
           aria-label={t('Settings')}
-          className="inline-flex size-9 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-          title={t('Settings')}
-          onClick={() => {
+          variant="primary"
+          onPress={() => {
             void browser.runtime.openOptionsPage();
           }}
         >
@@ -208,32 +254,9 @@ export function PopupApp() {
             <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" />
             <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .92l-.03.08a2 2 0 0 1-3.86 0l-.03-.08A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.92-1l-.08-.03a2 2 0 0 1 0-3.86l.08-.03A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.92l.03-.08a2 2 0 0 1 3.86 0l.03.08A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .92 1l.08.03a2 2 0 0 1 0 3.86l-.08.03a1.7 1.7 0 0 0-.92 1Z" />
           </svg>
-        </button>
+        </Button>
       </div>
-    </main>
-  );
-}
-
-function RuleToggle({
-  label,
-  checked,
-  onChange
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <label className="flex items-center justify-between gap-3 text-slate-700 dark:text-slate-300">
-      <span>{t(label)}</span>
-      <input
-        aria-label={t(label)}
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.currentTarget.checked)}
-      />
-    </label>
+    </Card>
   );
 }
 

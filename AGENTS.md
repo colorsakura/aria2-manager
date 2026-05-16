@@ -63,6 +63,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## Project-Specific Guidelines
 
 - Use TypeScript strict mode
+- Use bun instead of npm
 
 ---
 
