@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "web-ext:build": "web-ext build --source-dir dist",
     "web-ext:run": "web-ext run --source-dir dist --firefox=firefox",
     "web-ext:lint": "web-ext lint --source-dir dist"
   },
